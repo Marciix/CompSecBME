@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+
 namespace CaffShop.Entities
 {
     [Table("comments")]
@@ -9,7 +10,7 @@ namespace CaffShop.Entities
     {
         [Key]
         [Column("id")]
-        public int Id { get; set; }
+        public long Id { get; set; }
         
         [Column("content")]
         [Required]
@@ -22,14 +23,13 @@ namespace CaffShop.Entities
         [Column("author_id")]
         [ForeignKey("Author")]
         [Required]
-        public int AuthorId { get; set; }
+        public long AuthorId { get; set; }
         
         [Column("caff_item_id")]
         [ForeignKey("CaffItem")]
         [Required]
-        public int CaffItemId { get; set; }
+        public long CaffItemId { get; set; }
         
         public User Author { get; set; }
-        public CaffItem CaffItem { get; set; }
     }
 }

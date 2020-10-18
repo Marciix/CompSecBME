@@ -17,7 +17,7 @@ namespace CaffShop.Services
             _context = context;
         }
 
-        public async Task<Purchase> PurchaseItem(int itemId, int userId)
+        public async Task<Purchase> PurchaseItem(long itemId, long userId)
         {
             var purchase = new Purchase
             {
@@ -31,17 +31,17 @@ namespace CaffShop.Services
             return purchase;
         }
 
-        public async Task<List<Purchase>> GetItemPurchases(int itemId)
+        public async Task<List<Purchase>> GetItemPurchases(long itemId)
         {
             return await _context.Purchases.Where(p => p.Id == itemId).ToListAsync();
         }
 
-        public async Task<int> CountItemPurchases(int itemId)
+        public async Task<long> CountItemPurchases(long itemId)
         {
             return await _context.Purchases.Where(p => p.Id == itemId).CountAsync();
         }
 
-        public async Task<bool> IsUserPurchasedItem(int itemId, int userId)
+        public async Task<bool> IsUserPurchasedItem(long itemId, long userId)
         {
             var nr = await _context.Purchases
                 .Where(p => p.CaffItemId == itemId && p.UserId == userId)

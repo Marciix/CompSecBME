@@ -1,0 +1,36 @@
+version: '3.3'
+
+services:
+  db:
+    image: mariadb:10.5
+    volumes:
+      - db_data:/var/lib/mysql
+    environment:
+      #MYSQL_ROOT_PASSWORD: 
+      MYSQL_DATABASE: caffshop
+      MYSQL_USER: caffshop
+      MYSQL_PASSWORD: changeme
+    ports:
+      - "33060:3306"
+  
+  backend:
+    build: ./Dockerfile
+    depends_on:
+      - db
+    volumes:
+      - uploads:/app/Uploads 
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      DB_HOST: db
+      DB_NAME: caffshop
+      DB_USER: caffshop
+      DB_PASS: changeme
+      DB_PORT: 3306
+      JWT_SECRET: changethissecrettoo
+      DB_MIGRATE: "TRUE"
+    ports:
+      - "8080:80"
+
+volumes:
+  db_data: {}
+  uploads: {}

@@ -11,10 +11,10 @@ namespace CaffShop
         }
 
 
-        public DbSet<CaffItem> CaffItems;
-        public DbSet<Comment> Comments;
-        public DbSet<Purchase> Purchases;
-        public DbSet<User> Users;
+        public virtual DbSet<CaffItem> CaffItems { get; set; }
+        public virtual DbSet<Comment> Comments { get; set; }
+        public virtual DbSet<Purchase> Purchases { get; set; }
+        public virtual DbSet<User> Users  { get; set; }
 
     }
 }

@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CaffShop.Controllers
 {
-    // [Authorize] TODO !!!
+    [Authorize]
     [Route("[controller]")]
-    public class UserController : Controller
+    public class UsersController : Controller
     {
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteUser(long id)

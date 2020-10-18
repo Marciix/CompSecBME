@@ -1,16 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using AutoMapper;
 using CaffShop.Helpers;
+using CaffShop.Helpers.Wrappers;
 using CaffShop.Interfaces;
 using CaffShop.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -49,6 +54,10 @@ namespace CaffShop
             services.AddScoped<ICommentService, CommentService>();
             services.AddScoped<IPurchaseService, PurchaseService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IAuthenticationService, AuthenticationService>();
+            services.AddScoped<ICaffParserWrapper, CaffParserWrapperMock>();
+            
+            RegisterJwt(services);
 
             // Allow _myOrigin CORS profile
             services.AddCors(options =>
@@ -89,6 +98,8 @@ namespace CaffShop
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            
+            MigrateDatabase(app);
         }
         
         private static string GetConnectionStringFromEnv()
@@ -133,5 +144,38 @@ namespace CaffShop
                 }
             });
         }
+        
+        private static void MigrateDatabase(IApplicationBuilder app)
+        {
+            if (Environment.GetEnvironmentVariable("DB_MIGRATE") != "TRUE") return;
+            using var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
+            var context = serviceScope.ServiceProvider.GetService<CaffShopContext>();
+            context.Database.Migrate();
+        }
+
+        private static void RegisterJwt(IServiceCollection services)
+        {
+            var key = Encoding.ASCII.GetBytes(HelperFunctions.GetEnvironmentValueOrException("JWT_SECRET"));
+            services.AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(jwtBearerOptions =>
+                {
+                    jwtBearerOptions.RequireHttpsMetadata = false;
+                    jwtBearerOptions.SaveToken = true;
+                    jwtBearerOptions.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(key),
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        ValidateLifetime = true
+                    };
+                });
+        }
+
+        
     }
 }

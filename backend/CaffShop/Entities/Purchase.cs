@@ -4,11 +4,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CaffShop.Entities
 {
+    [Table("purchases")]
     public class Purchase
     {
         [Key]
         [Column("id")]
-        public int Id { get; set; }
+        public long Id { get; set; }
 
         [Column("purchased_at")]
         [Required]
@@ -17,12 +18,12 @@ namespace CaffShop.Entities
         [Column("user_id")]
         [ForeignKey("User")]
         [Required]
-        public int UserId { get; set; }
+        public long UserId { get; set; }
         
         [Column("caff_item_id")]
         [ForeignKey("CaffItem")]
         [Required]
-        public int CaffItemId { get; set; }
+        public long CaffItemId { get; set; }
         
         public User User { get; set; }
         public CaffItem CaffItem { get; set; }
