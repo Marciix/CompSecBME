@@ -6,7 +6,7 @@ services:
     volumes:
       - db_data:/var/lib/mysql
     environment:
-      #MYSQL_ROOT_PASSWORD: 
+      MYSQL_ROOT_PASSWORD: changeThisPassword
       MYSQL_DATABASE: caffshop
       MYSQL_USER: caffshop
       MYSQL_PASSWORD: changeme
@@ -14,7 +14,7 @@ services:
       - "33060:3306"
   
   backend:
-    build: ./Dockerfile
+    build: .
     depends_on:
       - db
     volumes:
