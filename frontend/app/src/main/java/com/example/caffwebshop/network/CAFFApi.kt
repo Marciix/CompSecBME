@@ -20,10 +20,10 @@ interface CAFFApi {
     fun getCaffItemsByID(@Path("id") id: Int): Call<CaffItemPublic>
 
     @GET("caffitems/{id}/download")
-    fun getCaffItemsByIDDownload(@Path("id") id: Int)
+    fun getCaffItemsByIDDownload(@Path("id") id: Int): Call<Unit>
 
     @GET("caffitems/{id}/preview")
-    fun getCaffItemsByIDPreview(@Path("id") id: Int)
+    fun getCaffItemsByIDPreview(@Path("id") id: Int): Call<Unit>
 
     @GET("caffitems/search/{keyword}")
     fun getCaffItemsSearch(@Path("keyword") keyword: String): Call<CaffItemPublic>
@@ -35,13 +35,13 @@ interface CAFFApi {
     fun uploadCaffItem(@Body param: CaffItemCreation): Call<Int>
 
     @POST("caffitems/{id}/buy")
-    fun buyCaffItem(@Path("id") id: Int)
+    fun buyCaffItem(@Path("id") id: Int):Call<Unit>
 
     @POST("caffitems/{id}/comments")
     fun commentCaffItem(@Path("id") id: Int, @Body comment: CommentCreationModel): Call<Int>
 
     @DELETE("caffitems/{id}")
-    fun deleteCaffItemByID(@Path("id") id: Int)
+    fun deleteCaffItemByID(@Path("id") id: Int): Call<Unit>
 
 
 
