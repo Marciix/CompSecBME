@@ -42,16 +42,18 @@ class CAFFInteractor {
         }.start()
     }
 
-    fun getCaffItems(token: String,onSuccess: (List<CaffItemPublic>)->Unit, onError: (Throwable) -> Unit){
+    @JvmOverloads
+    fun getCaffItems(token: String, withOwner :Boolean = false,onSuccess: (List<CaffItemPublic>)->Unit, onError: (Throwable) -> Unit){
 
-        val getRequest=caffApi.getCaffItems(token)
+        val getRequest=caffApi.getCaffItems(token,withOwner)
         runCallOnBackgroundThread(getRequest,onSuccess,onError)
         //Log.d("request: ", getRequest.request().toString())
 
     }
 
-    fun getCaffItemsByID(token: String, param: Int, onSuccess: (CaffItemPublic)->Unit, onError: (Throwable) -> Unit){
-        val getRequest=caffApi.getCaffItemsByID(token, param)
+    @JvmOverloads
+    fun getCaffItemsByID(token: String, withOwner :Boolean = false, param: Int, onSuccess: (CaffItemPublic)->Unit, onError: (Throwable) -> Unit){
+        val getRequest=caffApi.getCaffItemsByID(token, param, withOwner)
         runCallOnBackgroundThread(getRequest,onSuccess,onError)
 
     }
@@ -68,14 +70,16 @@ class CAFFInteractor {
 
     }
 
-    fun getCaffItemsSearch(token: String, param: String, onSuccess: (CaffItemPublic)->Unit, onError: (Throwable) -> Unit){
-        val getRequest=caffApi.getCaffItemsSearch(token, param)
+    @JvmOverloads
+    fun getCaffItemsSearch(token: String, param: String, withOwner :Boolean = false, onSuccess: (CaffItemPublic)->Unit, onError: (Throwable) -> Unit){
+        val getRequest=caffApi.getCaffItemsSearch(token, param, withOwner)
         runCallOnBackgroundThread(getRequest,onSuccess,onError)
 
     }
 
-    fun getCaffItemsByIDComment(token: String, param: Int, onSuccess: (CommentPublic)->Unit, onError: (Throwable) -> Unit){
-        val getRequest=caffApi.getCaffItemsByIDComment(token, param)
+    @JvmOverloads
+    fun getCaffItemsByIDComment(token: String, param: Int, withAuthors :Boolean = false, onSuccess: (CommentPublic)->Unit, onError: (Throwable) -> Unit){
+        val getRequest=caffApi.getCaffItemsByIDComment(token, param, withAuthors)
         runCallOnBackgroundThread(getRequest,onSuccess,onError)
 
     }

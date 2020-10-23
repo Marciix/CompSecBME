@@ -14,10 +14,10 @@ interface CAFFApi {
     }
 
     @GET("caffitems")
-    fun getCaffItems(@Header("Authorization") token:String): Call<List<CaffItemPublic>>
+    fun getCaffItems(@Header("Authorization") token:String, @Query("withOwner") withOwner: Boolean): Call<List<CaffItemPublic>>
 
     @GET("caffitems/{id}")
-    fun getCaffItemsByID(@Header("Authorization") token:String, @Path("id") id: Int): Call<CaffItemPublic>
+    fun getCaffItemsByID(@Header("Authorization") token:String, @Path("id") id: Int, @Query("withOwner") withOwner: Boolean): Call<CaffItemPublic>
 
     @GET("caffitems/{id}/download")
     fun getCaffItemsByIDDownload(@Header("Authorization") token:String,@Path("id") id: Int): Call<Void>
@@ -26,10 +26,10 @@ interface CAFFApi {
     fun getCaffItemsByIDPreview(@Header("Authorization") token:String,@Path("id") id: Int): Call<Void>
 
     @GET("caffitems/search/{keyword}")
-    fun getCaffItemsSearch(@Header("Authorization") token:String,@Path("keyword") keyword: String): Call<CaffItemPublic>
+    fun getCaffItemsSearch(@Header("Authorization") token:String,@Path("keyword") keyword: String, @Query("withOwner") withOwner: Boolean): Call<CaffItemPublic>
 
     @GET("caffitems/{id}/comment")
-    fun getCaffItemsByIDComment(@Header("Authorization") token:String, @Path("id") id: Int): Call<CommentPublic>
+    fun getCaffItemsByIDComment(@Header("Authorization") token:String, @Path("id") id: Int, @Query("withAuthors") withOwner: Boolean): Call<CommentPublic>
 
     @POST("caffitems/upload")
     fun uploadCaffItem(@Header("Authorization") token:String, @Body param: CaffItemCreation): Call<Int>

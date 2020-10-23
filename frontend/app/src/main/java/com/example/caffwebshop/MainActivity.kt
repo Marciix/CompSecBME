@@ -19,7 +19,7 @@ import okhttp3.ResponseBody
 class MainActivity : AppCompatActivity() {
     private var authInteractor=AuthInteractor()
     private var caffInteractor= CAFFInteractor()
-    private var token="Bearer "
+    private lateinit var token: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,14 +46,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onCaffGetSuccess(c: List<CaffItemPublic>){
-        Log.d("succ", "caff get succes" )
-        for(item in c){
-            Log.d("succ", c.toString() )
-        }
+        Log.d("succ", c.toString())
+
     }
 
     fun onSuccessLogin(i: UserLoginResponse){
-        token+=i.jwtToken
+        token="Bearer "+i.jwtToken
         val msg= "success id: $token"
         Log.d("succ", msg )
     }
