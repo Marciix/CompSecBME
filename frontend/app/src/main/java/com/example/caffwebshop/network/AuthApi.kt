@@ -9,7 +9,7 @@ import retrofit2.http.POST
 
 interface AuthApi {
     companion object{
-        const val ENDPOINT_URL="API_ENDPOINT"
+        const val ENDPOINT_URL="https://caffshop-api.nkelemen.hu/"
     }
 
     @POST("auth/login")

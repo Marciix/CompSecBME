@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName
 
 data class UserRegistrationModel (
     @SerializedName("userName")
-    val userName:Int,
+    val userName:String,
     @SerializedName("email")
     val email: String,
     @SerializedName("firstName")

@@ -10,7 +10,7 @@ import retrofit2.http.*
 
 interface CAFFApi {
     companion object{
-        const val ENDPOINT_URL="API_ENDPOINT"
+        const val ENDPOINT_URL="https://caffshop-api.nkelemen.hu/"
     }
 
     @GET("caffitems")

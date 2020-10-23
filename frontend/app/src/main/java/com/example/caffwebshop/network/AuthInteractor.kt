@@ -1,6 +1,7 @@
 package com.example.caffwebshop.network
 
 import android.os.Handler
+import android.util.Log
 import com.example.caffwebshop.model.UserAuthenticateModel
 import com.example.caffwebshop.model.UserLoginResponse
 import com.example.caffwebshop.model.UserRegistrationModel
@@ -27,6 +28,8 @@ class AuthInteractor {
         val handler = Handler()
         Thread {
             try {
+                //if(!call.execute().isSuccessful) Log.i("call", "call null")
+                //else Log.i("call", "call not null")
                 val response = call.execute().body()!!
                 handler.post {
                     onSuccess(response)

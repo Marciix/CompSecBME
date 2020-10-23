@@ -3,12 +3,19 @@ package com.example.caffwebshop
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
+import com.example.caffwebshop.model.UserAuthenticateModel
+import com.example.caffwebshop.model.UserLoginResponse
+import com.example.caffwebshop.model.UserRegistrationModel
+import com.example.caffwebshop.network.AuthInteractor
 
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
+    private var authInteractor=AuthInteractor()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -16,9 +23,23 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
+            val user=UserRegistrationModel("a","b","c", "d", "e")
+            val userAuthenticateModel=UserAuthenticateModel("string", "string")
+            //authInteractor.register(user, this::onSuccess, this::onError)
+            authInteractor.login(userAuthenticateModel, this::onSuccess, this::onError)
+
+
         }
+    }
+
+    fun onSuccess(u:UserLoginResponse){
+        val msg= "success id:"+u.jwtToken
+        Log.d("succ", msg )
+    }
+
+    fun onError(e:Throwable){
+        e.printStackTrace()
+        Log.d("err", "errrorrr")
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

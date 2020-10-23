@@ -7,7 +7,7 @@ import retrofit2.http.Path
 
 interface UserApi {
     companion object{
-        const val ENDPOINT_URL="API_ENDPOINT"
+        const val ENDPOINT_URL="https://caffshop-api.nkelemen.hu/"
     }
 
     @PUT("users/{id}")
