@@ -29,7 +29,7 @@ namespace CaffShop.Entities
         public byte[] PasswordSalt { get; set; }
 
         [Column("is_admin")]
-        public bool IsAdmin { get; set; } = false;
+        public bool IsAdmin { get; set; }
 
     }
 }

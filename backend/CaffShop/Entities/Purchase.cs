@@ -24,8 +24,5 @@ namespace CaffShop.Entities
         [ForeignKey("CaffItem")]
         [Required]
         public long CaffItemId { get; set; }
-        
-        public User User { get; set; }
-        public CaffItem CaffItem { get; set; }
     }
 }

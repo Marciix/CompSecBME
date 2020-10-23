@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using CaffShop.Entities;
 using CaffShop.Helpers;
 using CaffShop.Interfaces;
+using CaffShop.Models.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace CaffShop.Services
@@ -37,10 +37,13 @@ namespace CaffShop.Services
         {
             // validation
             if (string.IsNullOrWhiteSpace(password))
-                throw new Exception("Password is required");
+                throw new PasswordRequiredException("Password is required");
 
             if (await _context.Users.AnyAsync(x => x.UserName == user.UserName))
-                throw new Exception("Username \"" + user.UserName + "\" is already taken");
+                throw new UserAlreadyExistsException("Username \"" + user.UserName + "\" is already taken");
+            
+            if(await _context.Users.AnyAsync(u => u.Email == user.Email))
+                throw new UserAlreadyExistsException("Email \"" + user.Email + "\" is already taken");
 
             UserHelper.CreatePasswordHash(password, out var passwordHash, out var passwordSalt);
 
@@ -58,6 +61,12 @@ namespace CaffShop.Services
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
             return user;
+        }
+
+        public async Task DeleteUser(User user)
+        {
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
         }
     }
 }

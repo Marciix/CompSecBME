@@ -8,6 +8,8 @@ using CaffShop.Entities;
 using CaffShop.Helpers;
 using CaffShop.Interfaces;
 using CaffShop.Models;
+using CaffShop.Models.Exceptions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
@@ -16,8 +18,6 @@ namespace CaffShop.Controllers
     [Route("[controller]")]
     public class AuthController : Controller
     {
-
-        
         private readonly IUserService _userService;
         private readonly IAuthenticationService _authenticationService;
         private readonly byte[] _jwtSecret;
@@ -31,7 +31,7 @@ namespace CaffShop.Controllers
             _jwtSecret = Encoding.ASCII.GetBytes(HelperFunctions.GetEnvironmentValueOrException("JWT_SECRET"));
         }
 
-        
+
         [HttpPost("login")]
         public async Task<ActionResult<UserLoginResponse>> Authenticate([FromBody] UserAuthenticateModel model)
         {
@@ -41,7 +41,7 @@ namespace CaffShop.Controllers
                 return BadRequest(new {message = "Username or password is incorrect"});
 
             var role = user.IsAdmin ? UserHelper.RoleAdmin : UserHelper.RoleUser;
-            
+
             var tokenHandler = new JwtSecurityTokenHandler();
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -78,11 +78,18 @@ namespace CaffShop.Controllers
                 user = await _userService.CreateUser(user, model.Password);
                 return Ok(user.Id);
             }
-            catch (Exception ex)
+            catch (UserAlreadyExistsException ex)
+            {
+                return Conflict(new {message = ex.Message});
+            }
+            catch (PasswordRequiredException ex)
             {
                 return BadRequest(new {message = ex.Message});
             }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
-
     }
 }

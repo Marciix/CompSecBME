@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
 using CaffShop.Helpers;
@@ -231,7 +230,7 @@ namespace CaffShop.Controllers
             return Ok();
         }
 
-        private void DeleteCaffItemFromDisc(CaffItem item)
+        private static void DeleteCaffItemFromDisc(CaffItem item)
         {
             if(System.IO.File.Exists(item.CaffPath))
                 System.IO.File.Delete(item.CaffPath);

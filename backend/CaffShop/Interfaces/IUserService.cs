@@ -11,5 +11,6 @@ namespace CaffShop.Interfaces
         Task<IEnumerable<User>> GetAllUsers();
         Task<User> CreateUser(User user, string password);
         Task<User> UpdateUser(User user);
+        Task DeleteUser(User user);
     }
 }
