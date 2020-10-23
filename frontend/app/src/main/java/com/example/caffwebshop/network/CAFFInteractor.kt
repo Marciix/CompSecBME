@@ -29,10 +29,10 @@ class CAFFInteractor {
         val handler = Handler()
         Thread {
             try {
-                Log.i("status", call.execute().code().toString())
-                //val response = call.execute().body()!!
+                //Log.i("status", call.execute().code().toString())
+                val response = call.execute().body()!!
                 handler.post {
-                  //  onSuccess(response)
+                    onSuccess(response)
                 }
 
             } catch (e: Exception) {
@@ -42,59 +42,61 @@ class CAFFInteractor {
         }.start()
     }
 
-    fun getCaffItems(onSuccess: (CaffItemPublic)->Unit, onError: (Throwable) -> Unit){
-        val getRequest=caffApi.getCaffItems()
+    fun getCaffItems(token: String,onSuccess: (List<CaffItemPublic>)->Unit, onError: (Throwable) -> Unit){
+
+        val getRequest=caffApi.getCaffItems(token)
+        runCallOnBackgroundThread(getRequest,onSuccess,onError)
+        //Log.d("request: ", getRequest.request().toString())
+
+    }
+
+    fun getCaffItemsByID(token: String, param: Int, onSuccess: (CaffItemPublic)->Unit, onError: (Throwable) -> Unit){
+        val getRequest=caffApi.getCaffItemsByID(token, param)
         runCallOnBackgroundThread(getRequest,onSuccess,onError)
 
     }
 
-    fun getCaffItemsByID(param: Int, onSuccess: (CaffItemPublic)->Unit, onError: (Throwable) -> Unit){
-        val getRequest=caffApi.getCaffItemsByID(param)
+    fun getCaffItemsByIDDownload(token: String, param: Int, onSuccess: (Void)->Unit, onError: (Throwable) -> Unit){
+        val getRequest=caffApi.getCaffItemsByIDDownload(token, param)
         runCallOnBackgroundThread(getRequest,onSuccess,onError)
 
     }
 
-    fun getCaffItemsByIDDownload(param: Int, onSuccess: (Void)->Unit, onError: (Throwable) -> Unit){
-        val getRequest=caffApi.getCaffItemsByIDDownload(param)
+    fun getCaffItemsByIDPreview(token: String, param: Int, onSuccess: (Void)->Unit, onError: (Throwable) -> Unit){
+        val getRequest=caffApi.getCaffItemsByIDPreview(token, param)
         runCallOnBackgroundThread(getRequest,onSuccess,onError)
 
     }
 
-    fun getCaffItemsByIDPreview(param: Int, onSuccess: (Void)->Unit, onError: (Throwable) -> Unit){
-        val getRequest=caffApi.getCaffItemsByIDPreview(param)
+    fun getCaffItemsSearch(token: String, param: String, onSuccess: (CaffItemPublic)->Unit, onError: (Throwable) -> Unit){
+        val getRequest=caffApi.getCaffItemsSearch(token, param)
         runCallOnBackgroundThread(getRequest,onSuccess,onError)
 
     }
 
-    fun getCaffItemsSearch(param: String, onSuccess: (CaffItemPublic)->Unit, onError: (Throwable) -> Unit){
-        val getRequest=caffApi.getCaffItemsSearch(param)
+    fun getCaffItemsByIDComment(token: String, param: Int, onSuccess: (CommentPublic)->Unit, onError: (Throwable) -> Unit){
+        val getRequest=caffApi.getCaffItemsByIDComment(token, param)
         runCallOnBackgroundThread(getRequest,onSuccess,onError)
 
     }
 
-    fun getCaffItemsByIDComment(param: Int, onSuccess: (CommentPublic)->Unit, onError: (Throwable) -> Unit){
-        val getRequest=caffApi.getCaffItemsByIDComment(param)
-        runCallOnBackgroundThread(getRequest,onSuccess,onError)
-
-    }
-
-    fun uploadCaffItem(param: CaffItemCreation, onSucces: (Int)->Unit, onError: (Throwable) -> Unit){
-        val uploadRequest=caffApi.uploadCaffItem(param)
+    fun uploadCaffItem(token: String, param: CaffItemCreation, onSucces: (Int)->Unit, onError: (Throwable) -> Unit){
+        val uploadRequest=caffApi.uploadCaffItem(token, param)
         runCallOnBackgroundThread(uploadRequest,onSucces,onError)
     }
 
-    fun buyCaffItem(param: Int, onSucces: (Void)->Unit, onError: (Throwable) -> Unit){
-        val buyRequest=caffApi.buyCaffItem(param)
+    fun buyCaffItem(token: String, param: Int, onSucces: (Void)->Unit, onError: (Throwable) -> Unit){
+        val buyRequest=caffApi.buyCaffItem(token, param)
         runCallOnBackgroundThread(buyRequest,onSucces,onError)
     }
 
-    fun commentCaffItem(id: Int, comment: CommentCreationModel, onSucces: (Int)->Unit, onError: (Throwable) -> Unit){
-        val commentRequest=caffApi.commentCaffItem(id, comment)
+    fun commentCaffItem(token: String, id: Int, comment: CommentCreationModel, onSucces: (Int)->Unit, onError: (Throwable) -> Unit){
+        val commentRequest=caffApi.commentCaffItem(token, id, comment)
         runCallOnBackgroundThread(commentRequest,onSucces,onError)
     }
 
-    fun deleteCaffItem(id: Int, onSuccess: (Void) -> Unit, onError: (Throwable) -> Unit){
-        val deleteRequest=caffApi.deleteCaffItemByID(id)
+    fun deleteCaffItem(token: String, id: Int, onSuccess: (Void) -> Unit, onError: (Throwable) -> Unit){
+        val deleteRequest=caffApi.deleteCaffItemByID(token, id)
         runCallOnBackgroundThread(deleteRequest,onSuccess,onError)
     }
 

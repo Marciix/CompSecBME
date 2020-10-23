@@ -36,15 +36,15 @@ class UserInteractor {
         }.start()
     }
 
-    fun addUser(param: Int, onSuccess: (Void) -> Unit, onError: (Throwable) -> Unit){
+    fun addUser(token :String, param: Int, onSuccess: (Void) -> Unit, onError: (Throwable) -> Unit){
 
-        val addRequest=userApi.addUser(param)
+        val addRequest=userApi.addUser(token, param)
         runCallOnBackgroundThread(addRequest,onSuccess, onError)
     }
 
-    fun delete(param: Int, onSuccess: (Void) -> Unit, onError: (Throwable) -> Unit){
+    fun delete(token: String, param: Int, onSuccess: (Void) -> Unit, onError: (Throwable) -> Unit){
 
-        val deleteRequest=userApi.deleteUser(param)
+        val deleteRequest=userApi.deleteUser(token, param)
         runCallOnBackgroundThread(deleteRequest,onSuccess, onError)
     }
 }

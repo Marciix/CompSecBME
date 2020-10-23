@@ -1,14 +1,14 @@
 package com.example.caffwebshop.network
 
 import android.os.Handler
-import android.util.Log
 import com.example.caffwebshop.model.UserAuthenticateModel
 import com.example.caffwebshop.model.UserLoginResponse
 import com.example.caffwebshop.model.UserRegistrationModel
-import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+
+
 
 class AuthInteractor {
     private val authApi: AuthApi
@@ -18,6 +18,7 @@ class AuthInteractor {
             .baseUrl(AuthApi.ENDPOINT_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
+
         this.authApi=retrofit.create(AuthApi::class.java)
     }
 
@@ -29,12 +30,10 @@ class AuthInteractor {
         val handler = Handler()
         Thread {
             try {
-                //if(!call.execute().isSuccessful) Log.i("call", "call null")
-                //else Log.i("call", "call not null")
-                Log.i("status", call.execute().code().toString())
-                //val response = call.execute().body()!!
+
+                val response = call.execute().body()!!
                 handler.post {
-                  //  onSuccess(response)
+                    onSuccess(response)
                 }
 
             } catch (e: Exception) {
@@ -54,7 +53,8 @@ class AuthInteractor {
 
         val registerRequest=authApi.register(param)
         runCallOnBackgroundThread(registerRequest,onSuccess, onError)
-        Log.d("regParam: ",param.toString())
+
+       // Log.d("regParam: ", Gson().toJson(param))
     }
 
 }

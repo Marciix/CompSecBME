@@ -2,6 +2,7 @@ package com.example.caffwebshop.network
 
 import retrofit2.Call
 import retrofit2.http.DELETE
+import retrofit2.http.Header
 import retrofit2.http.PUT
 import retrofit2.http.Path
 
@@ -11,8 +12,8 @@ interface UserApi {
     }
 
     @PUT("users/{id}")
-    fun addUser(@Path("id") id: Int): Call<Void>
+    fun addUser(@Header("Authorization") token:String, @Path("id") id: Int): Call<Void>
 
     @DELETE("users/{id}")
-    fun deleteUser(@Path("id") id: Int): Call<Void>
+    fun deleteUser(@Header("Authorization") token:String, @Path("id") id: Int): Call<Void>
 }

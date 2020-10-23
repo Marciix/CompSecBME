@@ -12,7 +12,7 @@ data class CaffItemPublic (
     @SerializedName("ownerId")
     val ownerId: Int,
     @SerializedName("uploadedAt")
-    val uploadedAt: Int,
+    val uploadedAt: String,
     @SerializedName("owner")
     val owner: UserPublic
 )

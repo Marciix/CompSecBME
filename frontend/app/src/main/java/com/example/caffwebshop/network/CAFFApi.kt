@@ -14,34 +14,34 @@ interface CAFFApi {
     }
 
     @GET("caffitems")
-    fun getCaffItems(): Call<CaffItemPublic>
+    fun getCaffItems(@Header("Authorization") token:String): Call<List<CaffItemPublic>>
 
     @GET("caffitems/{id}")
-    fun getCaffItemsByID(@Path("id") id: Int): Call<CaffItemPublic>
+    fun getCaffItemsByID(@Header("Authorization") token:String, @Path("id") id: Int): Call<CaffItemPublic>
 
     @GET("caffitems/{id}/download")
-    fun getCaffItemsByIDDownload(@Path("id") id: Int): Call<Void>
+    fun getCaffItemsByIDDownload(@Header("Authorization") token:String,@Path("id") id: Int): Call<Void>
 
     @GET("caffitems/{id}/preview")
-    fun getCaffItemsByIDPreview(@Path("id") id: Int): Call<Void>
+    fun getCaffItemsByIDPreview(@Header("Authorization") token:String,@Path("id") id: Int): Call<Void>
 
     @GET("caffitems/search/{keyword}")
-    fun getCaffItemsSearch(@Path("keyword") keyword: String): Call<CaffItemPublic>
+    fun getCaffItemsSearch(@Header("Authorization") token:String,@Path("keyword") keyword: String): Call<CaffItemPublic>
 
     @GET("caffitems/{id}/comment")
-    fun getCaffItemsByIDComment(@Path("id") id: Int): Call<CommentPublic>
+    fun getCaffItemsByIDComment(@Header("Authorization") token:String, @Path("id") id: Int): Call<CommentPublic>
 
     @POST("caffitems/upload")
-    fun uploadCaffItem(@Body param: CaffItemCreation): Call<Int>
+    fun uploadCaffItem(@Header("Authorization") token:String, @Body param: CaffItemCreation): Call<Int>
 
     @POST("caffitems/{id}/buy")
-    fun buyCaffItem(@Path("id") id: Int):Call<Void>
+    fun buyCaffItem(@Header("Authorization") token:String,@Path("id") id: Int):Call<Void>
 
     @POST("caffitems/{id}/comments")
-    fun commentCaffItem(@Path("id") id: Int, @Body comment: CommentCreationModel): Call<Int>
+    fun commentCaffItem(@Header("Authorization") token:String,@Path("id") id: Int, @Body comment: CommentCreationModel): Call<Int>
 
     @DELETE("caffitems/{id}")
-    fun deleteCaffItemByID(@Path("id") id: Int): Call<Void>
+    fun deleteCaffItemByID(@Header("Authorization") token:String, @Path("id") id: Int): Call<Void>
 
 
 

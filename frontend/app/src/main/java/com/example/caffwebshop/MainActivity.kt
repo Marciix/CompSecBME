@@ -19,6 +19,7 @@ import okhttp3.ResponseBody
 class MainActivity : AppCompatActivity() {
     private var authInteractor=AuthInteractor()
     private var caffInteractor= CAFFInteractor()
+    private var token="Bearer "
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,29 +27,34 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
 
+
         register.setOnClickListener { view ->
-            val user=UserRegistrationModel("a","b","c", "d", "e")
+            val user=UserRegistrationModel("test","b","c", "d", "test")
             authInteractor.register(user, this::onSuccess, this::onError)
 
         }
         login.setOnClickListener { view ->
-            val userAuthenticateModel= UserAuthenticateModel("string", "string")
+            val userAuthenticateModel= UserAuthenticateModel("test", "test")
             authInteractor.login(userAuthenticateModel, this::onSuccessLogin, this::onError)
 
         }
         test.setOnClickListener { view ->
 
-            caffInteractor.getCaffItems(this::onCaffGetSuccess, this::onError)
+            caffInteractor.getCaffItems(token = token , onSuccess = this::onCaffGetSuccess,onError =  this::onError)
 
         }
     }
 
-    fun onCaffGetSuccess(c: CaffItemPublic){
+    fun onCaffGetSuccess(c: List<CaffItemPublic>){
         Log.d("succ", "caff get succes" )
+        for(item in c){
+            Log.d("succ", c.toString() )
+        }
     }
 
     fun onSuccessLogin(i: UserLoginResponse){
-        val msg= "success id: ${i.jwtToken}"
+        token+=i.jwtToken
+        val msg= "success id: $token"
         Log.d("succ", msg )
     }
 
