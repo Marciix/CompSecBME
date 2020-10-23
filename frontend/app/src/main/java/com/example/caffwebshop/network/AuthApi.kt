@@ -3,6 +3,7 @@ package com.example.caffwebshop.network
 import com.example.caffwebshop.model.UserAuthenticateModel
 import com.example.caffwebshop.model.UserLoginResponse
 import com.example.caffwebshop.model.UserRegistrationModel
+import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.POST

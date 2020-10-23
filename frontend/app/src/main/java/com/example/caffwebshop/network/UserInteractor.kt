@@ -1,8 +1,6 @@
 package com.example.caffwebshop.network
 
 import android.os.Handler
-import com.example.caffwebshop.model.UserAuthenticateModel
-import com.example.caffwebshop.model.UserLoginResponse
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -38,13 +36,13 @@ class UserInteractor {
         }.start()
     }
 
-    fun addUser(param: Int, onSuccess: (Unit) -> Unit, onError: (Throwable) -> Unit){
+    fun addUser(param: Int, onSuccess: (Void) -> Unit, onError: (Throwable) -> Unit){
 
         val addRequest=userApi.addUser(param)
         runCallOnBackgroundThread(addRequest,onSuccess, onError)
     }
 
-    fun delete(param: Int, onSuccess: (Unit) -> Unit, onError: (Throwable) -> Unit){
+    fun delete(param: Int, onSuccess: (Void) -> Unit, onError: (Throwable) -> Unit){
 
         val deleteRequest=userApi.deleteUser(param)
         runCallOnBackgroundThread(deleteRequest,onSuccess, onError)

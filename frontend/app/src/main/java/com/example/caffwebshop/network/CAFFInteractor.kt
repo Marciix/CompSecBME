@@ -1,6 +1,7 @@
 package com.example.caffwebshop.network
 
 import android.os.Handler
+import android.util.Log
 import com.example.caffwebshop.model.CaffItemCreation
 import com.example.caffwebshop.model.CaffItemPublic
 import com.example.caffwebshop.model.CommentCreationModel
@@ -28,9 +29,10 @@ class CAFFInteractor {
         val handler = Handler()
         Thread {
             try {
-                val response = call.execute().body()!!
+                Log.i("status", call.execute().code().toString())
+                //val response = call.execute().body()!!
                 handler.post {
-                    onSuccess(response)
+                  //  onSuccess(response)
                 }
 
             } catch (e: Exception) {
@@ -52,13 +54,13 @@ class CAFFInteractor {
 
     }
 
-    fun getCaffItemsByIDDownload(param: Int, onSuccess: (Unit)->Unit, onError: (Throwable) -> Unit){
+    fun getCaffItemsByIDDownload(param: Int, onSuccess: (Void)->Unit, onError: (Throwable) -> Unit){
         val getRequest=caffApi.getCaffItemsByIDDownload(param)
         runCallOnBackgroundThread(getRequest,onSuccess,onError)
 
     }
 
-    fun getCaffItemsByIDPreview(param: Int, onSuccess: (Unit)->Unit, onError: (Throwable) -> Unit){
+    fun getCaffItemsByIDPreview(param: Int, onSuccess: (Void)->Unit, onError: (Throwable) -> Unit){
         val getRequest=caffApi.getCaffItemsByIDPreview(param)
         runCallOnBackgroundThread(getRequest,onSuccess,onError)
 
@@ -81,7 +83,7 @@ class CAFFInteractor {
         runCallOnBackgroundThread(uploadRequest,onSucces,onError)
     }
 
-    fun buyCaffItem(param: Int, onSucces: (Unit)->Unit, onError: (Throwable) -> Unit){
+    fun buyCaffItem(param: Int, onSucces: (Void)->Unit, onError: (Throwable) -> Unit){
         val buyRequest=caffApi.buyCaffItem(param)
         runCallOnBackgroundThread(buyRequest,onSucces,onError)
     }
@@ -91,7 +93,7 @@ class CAFFInteractor {
         runCallOnBackgroundThread(commentRequest,onSucces,onError)
     }
 
-    fun deleteCaffItem(id: Int, onSuccess: (Unit) -> Unit, onError: (Throwable) -> Unit){
+    fun deleteCaffItem(id: Int, onSuccess: (Void) -> Unit, onError: (Throwable) -> Unit){
         val deleteRequest=caffApi.deleteCaffItemByID(id)
         runCallOnBackgroundThread(deleteRequest,onSuccess,onError)
     }

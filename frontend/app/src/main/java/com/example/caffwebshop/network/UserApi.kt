@@ -11,8 +11,8 @@ interface UserApi {
     }
 
     @PUT("users/{id}")
-    fun addUser(@Path("id") id: Int): Call<Unit>
+    fun addUser(@Path("id") id: Int): Call<Void>
 
     @DELETE("users/{id}")
-    fun deleteUser(@Path("id") id: Int): Call<Unit>
+    fun deleteUser(@Path("id") id: Int): Call<Void>
 }
