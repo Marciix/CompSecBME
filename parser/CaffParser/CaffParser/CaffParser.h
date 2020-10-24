@@ -1,7 +1,5 @@
 #pragma once
-#include <string>
-#include<iostream>
-#include<fstream>
+
 #ifdef BUILD_DLL
 #define CAFFPARSER_API __declspec(dllexport)
 #else

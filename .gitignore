@@ -30,3 +30,4 @@
 *.exe
 *.out
 *.app
+/parser/CaffParser/CaffParser/CaffParser.vcxproj.user
