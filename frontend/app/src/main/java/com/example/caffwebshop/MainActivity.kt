@@ -1,10 +1,12 @@
 package com.example.caffwebshop
 
+import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import com.example.caffwebshop.activity.LoginActivity
 import com.example.caffwebshop.model.CaffItemPublic
 import com.example.caffwebshop.model.UserAuthenticateModel
 import com.example.caffwebshop.model.UserLoginResponse
@@ -14,7 +16,6 @@ import com.example.caffwebshop.network.CAFFInteractor
 
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
-import okhttp3.ResponseBody
 
 class MainActivity : AppCompatActivity() {
     private var authInteractor=AuthInteractor()
@@ -26,9 +27,13 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
+        login.setOnClickListener{
+            val intent = Intent(this, LoginActivity::class.java)
+            startActivity(intent)
+        }
 
-
-        register.setOnClickListener { view ->
+        
+        /*register.setOnClickListener { view ->
             val user=UserRegistrationModel("test","b","c", "d", "test")
             authInteractor.register(user, this::onSuccess, this::onError)
 
@@ -37,7 +42,7 @@ class MainActivity : AppCompatActivity() {
             val userAuthenticateModel= UserAuthenticateModel("test", "test")
             authInteractor.login(userAuthenticateModel, this::onSuccessLogin, this::onError)
 
-        }
+        }*/
         test.setOnClickListener { view ->
 
             caffInteractor.getCaffItems(token = token , onSuccess = this::onCaffGetSuccess,onError =  this::onError)
