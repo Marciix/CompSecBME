@@ -69,7 +69,11 @@ class LoginActivity : AppCompatActivity() {
 
     fun onLoginSuccess() {
         btn_login!!.isEnabled = true
+        // val intent = Intent(applicationContext, MainActivity::class.java)
+        //startActivityForResult(intent, REQUEST_SIGNUP)
         finish()
+
+
     }
 
     fun onLoginFailed() {
