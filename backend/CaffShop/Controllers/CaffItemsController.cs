@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using System.Net.Http.Headers;
 using CaffShop.Entities;
+using ImageMagick;
 
 namespace CaffShop.Controllers
 {
@@ -20,7 +21,7 @@ namespace CaffShop.Controllers
     [Route("[controller]")]
     public class CaffItemsController : Controller
     {
-        public const long UploadSizeLimit = 10485760; // 10 Mib
+        public const long UploadSizeLimit = 20971520; // 20 Mib
         public const string UploadBaseDir = "Uploads";
         public const string UploadTempDir = "Tmp";
         public const string UploadPrevDir = "Previews";
@@ -72,7 +73,7 @@ namespace CaffShop.Controllers
         }
 
         [HttpPost("upload"), RequestSizeLimit(UploadSizeLimit)]
-        public async Task<ActionResult<long>> UploadCaffFile([FromBody] CaffItemCreation itemMeta)
+        public async Task<ActionResult<long>> UploadCaffFile([FromForm] CaffItemCreation itemMeta)
         {
             if (Request.Form.Files.Count != 1)
                 return BadRequest("Submitted form data must contain exactly one file");
@@ -80,11 +81,11 @@ namespace CaffShop.Controllers
 
             var originalName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
             var extension = Path.GetExtension(originalName);
-            if (extension.ToLower() != "caff")
+            if (extension.ToLower() != ".caff")
                 return BadRequest("The file must be a caff file");
 
             var rndName = HelperFunctions.GenerateRandomString(10);
-            var tmpPath = Path.Combine(_tempDir, rndName);
+            var tmpPath = Path.Combine(_tempDir, rndName + ".caff");
 
             await using (var stream = new FileStream(tmpPath, FileMode.Create))
             {
@@ -97,8 +98,10 @@ namespace CaffShop.Controllers
             }
             catch
             {
-                BadRequest("Caff file is invalid");
+                return BadRequest("Caff file is invalid");
             }
+
+            ConvertPpmToJpg(_prevDir, rndName);
 
             var item = new CaffItem
             {
@@ -107,7 +110,7 @@ namespace CaffShop.Controllers
                 OwnerId = UserHelper.GetAuthenticatedUserId(User),
                 UploadedAt = DateTime.Now,
                 CaffPath = Path.Combine(_caffDir, rndName),
-                PreviewPath = Path.Combine(_prevDir, rndName+PreviewExtension),
+                PreviewPath = Path.Combine(_prevDir, rndName + PreviewExtension),
                 InnerName = rndName,
                 OriginalName = originalName
             };
@@ -122,6 +125,15 @@ namespace CaffShop.Controllers
                 // TODO Log error
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
+        }
+
+        private static void ConvertPpmToJpg(string prevDir, string name)
+        {
+            var prevPath = Path.Combine(prevDir, "preview_" + name + ".ppm");
+            using var img = new MagickImage(prevPath);
+            img.Write(Path.Combine(prevDir, name + ".jpg"));
+            System.IO.File.Delete(prevPath);
+            
         }
 
         [HttpGet("{id}")]
@@ -157,7 +169,7 @@ namespace CaffShop.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
-        
+
         [HttpGet("{id}/download")]
         public async Task<ActionResult> DownloadCaffFile(long id)
         {
@@ -180,8 +192,8 @@ namespace CaffShop.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
-        
-        [HttpGet("{id}/preview")]
+
+        [HttpGet("{id}/preview.jpg")]
         public async Task<ActionResult> PreviewCaffFile(long id)
         {
             var item = await _caffItemService.GetCaffItem(id);
@@ -224,7 +236,7 @@ namespace CaffShop.Controllers
 
             if (item.OwnerId != userId && false == isAdmin)
                 return StatusCode(StatusCodes.Status403Forbidden, "You are not authorized to delete this item!");
-            
+
             await _caffItemService.DeleteCaffItem(item);
             DeleteCaffItemFromDisc(item);
             return Ok();
@@ -232,10 +244,10 @@ namespace CaffShop.Controllers
 
         private static void DeleteCaffItemFromDisc(CaffItem item)
         {
-            if(System.IO.File.Exists(item.CaffPath))
+            if (System.IO.File.Exists(item.CaffPath))
                 System.IO.File.Delete(item.CaffPath);
-            
-            if(System.IO.File.Exists(item.PreviewPath))
+
+            if (System.IO.File.Exists(item.PreviewPath))
                 System.IO.File.Delete(item.PreviewPath);
         }
 

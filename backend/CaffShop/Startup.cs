@@ -55,7 +55,7 @@ namespace CaffShop
             services.AddScoped<IPurchaseService, PurchaseService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthenticationService, AuthenticationService>();
-            services.AddScoped<ICaffParserWrapper, CaffParserWrapperMock>();
+            services.AddScoped<ICaffParserWrapper, CaffParserWrapper>();
             
             RegisterJwt(services);
 
