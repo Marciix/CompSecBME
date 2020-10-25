@@ -30,6 +30,8 @@ class MainActivity : AppCompatActivity() {
         login.setOnClickListener{
             val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
+
+
         }
 
         
