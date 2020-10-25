@@ -36,7 +36,16 @@ typedef struct pixel {
 	uint8_t b;
 }pixel;
 
-int ParseAndValidateCaff(std::string tempDir, std::string validCaffDir, std::string previewDir, std::string fileName) {
+int ParseAndValidateCaff(const char* _tempDir, const char* _validCaffDir, const char* _previewDir, const char* _fileName) {
+	
+	std::string tempDir = _tempDir;
+	std::string validCaffDir = _validCaffDir;
+	std::string previewDir = _previewDir;
+	std::string fileName = _fileName;
+
+	tempDir += '\\';
+	validCaffDir += '\\';
+	previewDir += '\\';
 
 	//variables
 	uint8_t id;
@@ -229,6 +238,8 @@ int ParseAndValidateCaff(std::string tempDir, std::string validCaffDir, std::str
 		}
 
 		myfile.close();
+	} else {
+		return 1;
 	}
 	return 0;
 }

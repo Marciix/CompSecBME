@@ -14,5 +14,5 @@
 */
 extern "C" 
 {
-	CAFFPARSER_API int ParseAndValidateCaff(std::string tempDir, std::string validCaffDir, std::string previewDir, std::string fileName);
+	CAFFPARSER_API int ParseAndValidateCaff(const char* tempDir, const char* validCaffDir, const char* previewDir, const char* fileName);
 }
