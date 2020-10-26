@@ -1,5 +1,4 @@
 #include"CaffParser.h"
-#include"pch.h"
 #include<string>
 #include<iostream>
 #include<fstream>
@@ -36,16 +35,13 @@ typedef struct pixel {
 	uint8_t b;
 }pixel;
 
-int ParseAndValidateCaff(const char* _tempDir, const char* _validCaffDir, const char* _previewDir, const char* _fileName) {
+int ParseAndValidateCaff(const char* _tempDir, const char* _validCaffDir, const char* _previewDir) {
+
+	//TODO move CAFF to validcaffdir
 	
 	std::string tempDir = _tempDir;
 	std::string validCaffDir = _validCaffDir;
 	std::string previewDir = _previewDir;
-	std::string fileName = _fileName;
-
-	tempDir += '\\';
-	validCaffDir += '\\';
-	previewDir += '\\';
 
 	//variables
 	uint8_t id;
@@ -59,10 +55,8 @@ int ParseAndValidateCaff(const char* _tempDir, const char* _validCaffDir, const 
 	int anims_read = 0;
 
 	std::ifstream myfile;
-	fileName += ".caff";
-	std::string openPath = tempDir + fileName;
-	std::ofstream image(previewDir + "preview_" + fileName.substr(0, fileName.find('.')) + ".ppm");
-	myfile.open(openPath.c_str(), std::ios::in | std::ios::binary);
+	std::ofstream image(previewDir.c_str());
+	myfile.open(tempDir.c_str(), std::ios::in | std::ios::binary);
 
 	if (myfile) {
 		while (myfile.good() && !myfile.eof())
