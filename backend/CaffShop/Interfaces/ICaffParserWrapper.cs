@@ -2,6 +2,6 @@
 {
     public interface ICaffParserWrapper
     {
-        public bool ValidateAndParseCaff(string tempDir, string validCaffDir, string previewDir, string name);
+        public void ValidateAndParseCaff(string tempFilePath, string caffFilePath, string prevFilePath);
     }
 }

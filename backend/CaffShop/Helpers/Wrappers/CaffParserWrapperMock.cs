@@ -4,9 +4,8 @@ namespace CaffShop.Helpers.Wrappers
 {
     public class CaffParserWrapperMock : ICaffParserWrapper
     {
-        public bool ValidateAndParseCaff(string tempDir, string validCaffDir, string previewDir, string name)
+        public void ValidateAndParseCaff(string tempFilePath, string caffFilePath, string prevFilePath)
         {
-            return true;
         }
     }
 }

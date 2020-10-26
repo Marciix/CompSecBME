@@ -11,5 +11,6 @@ WORKDIR /app
 ENV ASPNETCORE_ENVIRONMENT=Production
 ENV ASPNETCORE_URLS=http://+:80
 COPY --from=build /app ./
+COPY Resources /app/Resources
 ENTRYPOINT ["dotnet", "CaffShop.dll"]
 EXPOSE 80/tcp

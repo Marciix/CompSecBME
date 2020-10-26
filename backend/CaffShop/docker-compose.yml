@@ -18,7 +18,7 @@ services:
     depends_on:
       - db
     volumes:
-      - uploads:/app/Uploads 
+      - uploads:/uploads
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       DB_HOST: db
@@ -28,6 +28,10 @@ services:
       DB_PORT: 3306
       JWT_SECRET: changethissecrettoo
       DB_MIGRATE: "TRUE"
+      UP_BASE_DIR_PATH: "/uploads"
+      UP_TMP_DIR_PATH: "/tmp"
+      # PREVIEW_DIR_NAME: ""
+      # CAFF_DIR_NAME: ""
     ports:
       - "8080:80"
 

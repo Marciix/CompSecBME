@@ -13,6 +13,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using System.Net.Http.Headers;
 using CaffShop.Entities;
+using CaffShop.Models.Exceptions;
+using CaffShop.Models.Settings;
 using ImageMagick;
 
 namespace CaffShop.Controllers
@@ -21,47 +23,23 @@ namespace CaffShop.Controllers
     [Route("[controller]")]
     public class CaffItemsController : Controller
     {
-        public const long UploadSizeLimit = 20971520; // 20 Mib
-        public const string UploadBaseDir = "Uploads";
-        public const string UploadTempDir = "Tmp";
-        public const string UploadPrevDir = "Previews";
-        public const string UploadCaffDir = "Caffs";
-        public const string PreviewExtension = ".jpg";
 
         private readonly IMapper _mapper;
         private readonly ICaffItemService _caffItemService;
         private readonly ICommentService _commentService;
         private readonly IPurchaseService _purchaseService;
         private readonly ICaffParserWrapper _caffParserWrapper;
-
-        private readonly string _currDir;
-        private readonly string _tempDir;
-        private readonly string _caffDir;
-        private readonly string _prevDir;
+        private readonly UploadSettings _us;
 
         public CaffItemsController(IMapper mapper, ICaffItemService caffItemService, ICommentService commentService,
-            IPurchaseService purchaseService, ICaffParserWrapper caffParserWrapper)
+            IPurchaseService purchaseService, ICaffParserWrapper caffParserWrapper, UploadSettings us)
         {
             _mapper = mapper;
             _caffItemService = caffItemService;
             _commentService = commentService;
             _purchaseService = purchaseService;
             _caffParserWrapper = caffParserWrapper;
-
-            _currDir = Directory.GetCurrentDirectory();
-            _tempDir = Path.Combine(_currDir, UploadBaseDir, UploadTempDir);
-            _caffDir = Path.Combine(_currDir, UploadBaseDir, UploadCaffDir);
-            _prevDir = Path.Combine(_currDir, UploadBaseDir, UploadPrevDir);
-
-            InitDirectories();
-        }
-
-        private void InitDirectories()
-        {
-            Directory.CreateDirectory(Path.Combine(_currDir, UploadBaseDir));
-            Directory.CreateDirectory(_tempDir);
-            Directory.CreateDirectory(_prevDir);
-            Directory.CreateDirectory(_caffDir);
+            _us = us;
         }
 
         [HttpGet]
@@ -72,7 +50,7 @@ namespace CaffShop.Controllers
             return Ok(mappedItems);
         }
 
-        [HttpPost("upload"), RequestSizeLimit(UploadSizeLimit)]
+        [HttpPost("upload"), RequestSizeLimit(UploadSettings.UploadSizeLimit)]
         public async Task<ActionResult<long>> UploadCaffFile([FromForm] CaffItemCreation itemMeta)
         {
             if (Request.Form.Files.Count != 1)
@@ -85,23 +63,29 @@ namespace CaffShop.Controllers
                 return BadRequest("The file must be a caff file");
 
             var rndName = HelperFunctions.GenerateRandomString(10);
-            var tmpPath = Path.Combine(_tempDir, rndName + ".caff");
 
-            await using (var stream = new FileStream(tmpPath, FileMode.Create))
+            var tempFilePath = Path.Combine(_us.TempDirPath, rndName + ".caff");
+            var caffFilePath = Path.Combine(_us.CaffDirPath, rndName + ".caff");
+            var prevFilePath = Path.Combine(_us.PrevDirPath, rndName + ".ppm");
+
+            await using (var stream = new FileStream(tempFilePath, FileMode.Create))
             {
                 await file.CopyToAsync(stream);
             }
 
             try
             {
-                _caffParserWrapper.ValidateAndParseCaff(_tempDir, _caffDir, _prevDir, rndName);
+                _caffParserWrapper.ValidateAndParseCaff(tempFilePath, caffFilePath, prevFilePath);
             }
-            catch
+            catch (InvalidCaffFileException ex)
             {
-                return BadRequest("Caff file is invalid");
+                System.IO.File.Delete(tempFilePath);
+                return BadRequest(ex.Message);
             }
-
-            ConvertPpmToJpg(_prevDir, rndName);
+            
+            
+            var finalPrevFilePath = Path.Combine(_us.PrevDirPath, rndName + UploadSettings.PreviewExtension);
+            ConvertPpmToJpg(prevFilePath, finalPrevFilePath);
 
             var item = new CaffItem
             {
@@ -109,8 +93,8 @@ namespace CaffShop.Controllers
                 Description = itemMeta.Description,
                 OwnerId = UserHelper.GetAuthenticatedUserId(User),
                 UploadedAt = DateTime.Now,
-                CaffPath = Path.Combine(_caffDir, rndName),
-                PreviewPath = Path.Combine(_prevDir, rndName + PreviewExtension),
+                CaffPath = caffFilePath,
+                PreviewPath = finalPrevFilePath,
                 InnerName = rndName,
                 OriginalName = originalName
             };
@@ -127,13 +111,14 @@ namespace CaffShop.Controllers
             }
         }
 
-        private static void ConvertPpmToJpg(string prevDir, string name)
+        private static void ConvertPpmToJpg(string ppmPath, string targetPath)
         {
-            var prevPath = Path.Combine(prevDir, "preview_" + name + ".ppm");
-            using var img = new MagickImage(prevPath);
-            img.Write(Path.Combine(prevDir, name + ".jpg"));
-            System.IO.File.Delete(prevPath);
-            
+            if (false == System.IO.File.Exists(ppmPath))
+                throw new FileNotFoundException();
+
+            using var img = new MagickImage(ppmPath);
+            img.Write(targetPath);
+            System.IO.File.Delete(ppmPath);
         }
 
         [HttpGet("{id}")]

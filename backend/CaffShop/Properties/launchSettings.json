@@ -22,7 +22,11 @@
         "DB_PASS": "changeme",
         "DB_PORT": "33060",
         "JWT_SECRET": "changethissecrettoo",
-        "DB_MIGRATE": "TRUE"
+        "DB_MIGRATE": "TRUE",
+        "UP_BASE_DIR_PATH": "Uploads",
+        "UP_TMP_DIR_PATH": "",
+        "PREVIEW_DIR_NAME": "",
+        "CAFF_DIR_NAME": ""
       }
     }
   }

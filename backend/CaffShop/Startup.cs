@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using AutoMapper;
 using CaffShop.Helpers;
 using CaffShop.Helpers.Wrappers;
 using CaffShop.Interfaces;
+using CaffShop.Models.Settings;
 using CaffShop.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -37,16 +38,17 @@ namespace CaffShop
             {
                 options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
             });
-            
+
             // Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen(RegisterSwaggerGeneration);
-            
+
             // Lowercase urls
             services.AddRouting(options => options.LowercaseUrls = true);
 
             // Get Connection string from ENV variables
-            services.AddDbContext<CaffShopContext>(options => options.UseMySql(GetConnectionStringFromEnv()));
-            
+            var db = DatabaseSettings.GetFromEnvironment();
+            services.AddDbContext<CaffShopContext>(options => options.UseMySql(db.GetConnectionString()));
+
             // Add auto mapper profile
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
@@ -56,7 +58,8 @@ namespace CaffShop
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddScoped<ICaffParserWrapper, CaffParserWrapper>();
-            
+            services.AddSingleton<UploadSettings, UploadSettings>();
+
             RegisterJwt(services);
 
             // Allow _myOrigin CORS profile
@@ -87,6 +90,8 @@ namespace CaffShop
                 );
             }
 
+            InitUploadDirectories(app.ApplicationServices.GetRequiredService<UploadSettings>());
+
             app.UseHttpsRedirection();
 
             // Use _myOrigin CORS profile
@@ -98,19 +103,8 @@ namespace CaffShop
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
-            
-            MigrateDatabase(app);
-        }
-        
-        private static string GetConnectionStringFromEnv()
-        {
-            var host = HelperFunctions.GetEnvironmentValueOrException("DB_HOST");
-            var name = HelperFunctions.GetEnvironmentValueOrException("DB_NAME");
-            var user = HelperFunctions.GetEnvironmentValueOrException("DB_USER");
-            var pass = HelperFunctions.GetEnvironmentValueOrException("DB_PASS");
-            var port = HelperFunctions.GetEnvironmentValueOrException("DB_PORT");
 
-            return $"server={host};port={port};database={name};user={user};password={pass}";
+            MigrateDatabase(app);
         }
 
         private static void RegisterSwaggerGeneration(SwaggerGenOptions options)
@@ -144,7 +138,7 @@ namespace CaffShop
                 }
             });
         }
-        
+
         private static void MigrateDatabase(IApplicationBuilder app)
         {
             if (Environment.GetEnvironmentVariable("DB_MIGRATE") != "TRUE") return;
@@ -176,6 +170,12 @@ namespace CaffShop
                 });
         }
 
-        
+        private static void InitUploadDirectories(UploadSettings us)
+        {
+            Directory.CreateDirectory(us.UploadBaseDir);
+            Directory.CreateDirectory(us.TempDirPath);
+            Directory.CreateDirectory(us.CaffDirPath);
+            Directory.CreateDirectory(us.PrevDirPath);
+        }
     }
 }
