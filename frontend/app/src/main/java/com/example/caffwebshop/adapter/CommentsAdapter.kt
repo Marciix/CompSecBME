@@ -6,13 +6,10 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
 import com.example.caffwebshop.R
-import com.example.caffwebshop.activity.CommentsActivity
 import com.example.caffwebshop.model.CommentPublic
 import kotlinx.android.synthetic.main.li_comment.view.*
-import kotlinx.android.synthetic.main.li_image.view.*
 
 class CommentsAdapter(
     private val context: Context,
@@ -23,7 +20,7 @@ class CommentsAdapter(
     private val layoutInflater = LayoutInflater.from(context)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = layoutInflater.inflate(R.layout.li_image, parent, false)
+        val view = layoutInflater.inflate(R.layout.li_comment, parent, false)
         return ViewHolder(view)
     }
 

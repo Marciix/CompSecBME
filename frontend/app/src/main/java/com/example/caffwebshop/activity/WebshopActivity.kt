@@ -48,10 +48,10 @@ class WebshopActivity : AppCompatActivity() {
         listOfCaffs=list as MutableList<CaffItemPublic>
         val images: MutableList<String> = mutableListOf()
         for(item in listOfCaffs){
-            images += "https://images.unsplash.com/photo-1486758206125-94d07f414b1c?ixlib=rb-0.3.5&s=2bda5e189cbdf19185f03f310a88ae5b&auto=format&fit=crop&w=1950&q=80"
+            //images += "https://images.unsplash.com/photo-1486758206125-94d07f414b1c?ixlib=rb-0.3.5&s=2bda5e189cbdf19185f03f310a88ae5b&auto=format&fit=crop&w=1950&q=80"
         }
 
-        adapter = ImagesAdapter(applicationContext, images, token)
+        adapter = ImagesAdapter(applicationContext, listOfCaffs, token)
         rvImages.adapter = adapter
         srlImages.isRefreshing = false
     }

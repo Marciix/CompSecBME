@@ -26,8 +26,9 @@ class CAFFInteractor {
         val handler = Handler()
         Thread {
             try {
-                //Log.i("status", call.execute().code().toString())
+                Log.i("status", call.request().toString())
                 val response = call.execute().body()!!
+
                 handler.post {
                     onSuccess(response)
                 }
