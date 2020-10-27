@@ -1,0 +1,33 @@
+﻿{
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:4038",
+      "sslPort": 44304
+    }
+  },
+  "profiles": {
+    "CaffShop": {
+      "commandName": "Project",
+      "launchBrowser": false,
+      "launchUrl": "",
+      "applicationUrl": "https://localhost:5001;http://localhost:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DB_HOST": "localhost",
+        "DB_NAME": "caffshop",
+        "DB_USER": "caffshop",
+        "DB_PASS": "changeme",
+        "DB_PORT": "33060",
+        "JWT_SECRET": "changethissecrettoo",
+        "DB_MIGRATE": "TRUE",
+        "UP_BASE_DIR_PATH": "Uploads",
+        "UP_TMP_DIR_PATH": "",
+        "PREVIEW_DIR_NAME": "",
+        "CAFF_DIR_NAME": ""
+      }
+    }
+  }
+}
