@@ -15,12 +15,12 @@ namespace CaffShop.Helpers.Wrappers
             [MarshalAs(UnmanagedType.LPStr)] string prevFilePath
         );
 
-        public void ValidateAndParseCaff(string tempFilePath, string caffFilePath, string prevFilePath)
+        public void ValidateAndParseCaff(string tempFilePath, string prevFilePath)
         {
             int returnCode = -1;
             try
             {
-                returnCode = ParseAndValidateCaff(tempFilePath, caffFilePath, prevFilePath);
+                returnCode = ParseAndValidateCaff(tempFilePath, "", prevFilePath);
             }
             catch (Exception ex)
             {

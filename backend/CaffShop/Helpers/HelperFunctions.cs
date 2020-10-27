@@ -40,5 +40,12 @@ namespace CaffShop.Helpers
 
             return new string(chars);
         }
+
+        public static long GetUnixTimestamp()
+        {
+            var ts = DateTime.UtcNow - new DateTime(1970,1,1,0,0,0,0,DateTimeKind.Utc);
+            return Convert.ToInt64(ts.TotalSeconds);
+        }
+
     }
 }

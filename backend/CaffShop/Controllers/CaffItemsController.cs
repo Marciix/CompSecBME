@@ -51,38 +51,36 @@ namespace CaffShop.Controllers
         }
 
         [HttpPost("upload"), RequestSizeLimit(UploadSettings.UploadSizeLimit)]
-        public async Task<ActionResult<long>> UploadCaffFile([FromForm] CaffItemCreation itemMeta)
+        public async Task<ActionResult<IdResult>> UploadCaffFile([FromForm] CaffItemCreation itemMeta)
         {
             if (Request.Form.Files.Count != 1)
                 return BadRequest("Submitted form data must contain exactly one file");
             var file = Request.Form.Files[0];
 
             var originalName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
-            var extension = Path.GetExtension(originalName);
-            if (extension.ToLower() != ".caff")
+            
+            if (Path.GetExtension(originalName).ToLower() != ".caff")
                 return BadRequest("The file must be a caff file");
 
-            var rndName = HelperFunctions.GenerateRandomString(10);
+            var rndName = RandomFileNameWithTimestamp();
 
             var tempFilePath = Path.Combine(_us.TempDirPath, rndName + ".caff");
             var caffFilePath = Path.Combine(_us.CaffDirPath, rndName + ".caff");
             var prevFilePath = Path.Combine(_us.PrevDirPath, rndName + ".ppm");
 
-            await using (var stream = new FileStream(tempFilePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
+            await using var stream = new FileStream(tempFilePath, FileMode.Create);
+            await file.CopyToAsync(stream);
 
             try
             {
-                _caffParserWrapper.ValidateAndParseCaff(tempFilePath, caffFilePath, prevFilePath);
+                _caffParserWrapper.ValidateAndParseCaff(tempFilePath, prevFilePath);
+                System.IO.File.Move(tempFilePath, caffFilePath);
             }
             catch (InvalidCaffFileException ex)
             {
                 System.IO.File.Delete(tempFilePath);
                 return BadRequest(ex.Message);
             }
-            
             
             var finalPrevFilePath = Path.Combine(_us.PrevDirPath, rndName + UploadSettings.PreviewExtension);
             ConvertPpmToJpg(prevFilePath, finalPrevFilePath);
@@ -102,7 +100,7 @@ namespace CaffShop.Controllers
             try
             {
                 item = await _caffItemService.SaveCaff(item);
-                return Ok(item.Id);
+                return Ok(new IdResult{ Id = item.Id});
             }
             catch
             {
@@ -249,7 +247,7 @@ namespace CaffShop.Controllers
 
 
         [HttpPost("{id}/comments")]
-        public async Task<ActionResult<long>> CommentOnCaffItem(long id, [FromBody] CommentCreationModel commentModel)
+        public async Task<ActionResult<IdResult>> CommentOnCaffItem(long id, [FromBody] CommentCreationModel commentModel)
         {
             if (false == await _caffItemService.IsCaffExists(id))
                 return NotFound("Caff item not found");
@@ -259,7 +257,7 @@ namespace CaffShop.Controllers
             try
             {
                 var comment = await _commentService.SaveComment(commentModel.Content, id, userId);
-                return Ok(comment.Id);
+                return Ok(new IdResult{ Id = comment.Id});
             }
             catch
             {
@@ -283,6 +281,13 @@ namespace CaffShop.Controllers
             fileStream.FileDownloadName = fileName;
 
             return fileStream;
+        }
+
+        private static string RandomFileNameWithTimestamp()
+        {
+            var ts = HelperFunctions.GetUnixTimestamp();
+            var rnd = HelperFunctions.GenerateRandomString(10);
+            return $"{ts}_{rnd}";
         }
     }
 }

@@ -67,7 +67,7 @@ namespace CaffShop.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<long>> Register([FromBody] UserRegistrationModel model)
+        public async Task<ActionResult<IdResult>> Register([FromBody] UserRegistrationModel model)
         {
             // map model to entity
             var user = _mapper.Map<User>(model);
@@ -76,7 +76,7 @@ namespace CaffShop.Controllers
             {
                 // create user
                 user = await _userService.CreateUser(user, model.Password);
-                return Ok(user.Id);
+                return Ok(new IdResult{ Id = user.Id});
             }
             catch (UserAlreadyExistsException ex)
             {
