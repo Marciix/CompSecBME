@@ -1,7 +1,6 @@
 package com.example.caffwebshop.activity
 
 import android.os.Bundle
-import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.widget.Toast
@@ -12,10 +11,7 @@ import com.example.caffwebshop.model.CommentPublic
 import com.example.caffwebshop.model.UserPublic
 
 import kotlinx.android.synthetic.main.activity_comments.*
-import kotlinx.android.synthetic.main.activity_comments.fab_upload
 import kotlinx.android.synthetic.main.content_comments.*
-import com.bumptech.glide.load.model.LazyHeaderFactory
-import com.bumptech.glide.load.model.LazyHeaders
 import com.example.caffwebshop.R
 import com.example.caffwebshop.network.CAFFInteractor
 
@@ -50,10 +46,7 @@ class CommentsActivity : AppCompatActivity() {
 
         caffInteractor.getCaffItemsByIDComment(token=token, param=id,onSuccess = this::onLoadCommentsSuccess, onError = this::onLoadCommentsError)
 
-        fab_upload.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
-        }
+
     }
 
     private fun onLoadCommentsSuccess(list: List<CommentPublic>){

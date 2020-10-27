@@ -45,7 +45,6 @@ class CAFFInteractor {
 
         val getRequest=caffApi.getCaffItems(token,withOwner)
         runCallOnBackgroundThread(getRequest,onSuccess,onError)
-        //Log.d("request: ", getRequest.request().toString())
 
     }
 
