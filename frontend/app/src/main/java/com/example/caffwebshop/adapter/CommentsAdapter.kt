@@ -28,7 +28,13 @@ class CommentsAdapter(
     override fun getItemCount()= comments.size
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.user.text=comments[position].author.userName
+        val comment = comments[position]
+       if(comment.author!=null){
+           holder.user.text=comments[position].author.userName
+       }
+        else{
+           holder.user.text="user"
+       }
         holder.date.text=comments[position].createdAt
         holder.comment.text=comments[position].content
 

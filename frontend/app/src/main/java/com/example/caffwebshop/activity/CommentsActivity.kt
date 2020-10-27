@@ -8,7 +8,6 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.model.GlideUrl
 import com.example.caffwebshop.adapter.CommentsAdapter
 import com.example.caffwebshop.model.CommentPublic
-import com.example.caffwebshop.model.UserPublic
 
 import kotlinx.android.synthetic.main.activity_comments.*
 import kotlinx.android.synthetic.main.content_comments.*
@@ -18,7 +17,6 @@ import com.example.caffwebshop.network.CAFFInteractor
 
 class CommentsActivity : AppCompatActivity() {
     private lateinit var token: String
-   // private lateinit var imageUrl: String
     private var id=0
     private val caffInteractor= CAFFInteractor()
 
@@ -30,11 +28,8 @@ class CommentsActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         token=intent.getStringExtra("token")
-        //imageUrl=intent.getStringExtra("image")
         id=intent.getIntExtra("id", 0)
         rv_comments.layoutManager=LinearLayoutManager(applicationContext)
-
-        //Glide.with(applicationContext).load(imageUrl).into(iv_preview)
 
         val url = "https://caffshop-api.nkelemen.hu/caffitems/$id/preview.jpg"
         val glideUrl = GlideUrl(url) { mapOf(Pair("Authorization", token)) }
@@ -50,10 +45,7 @@ class CommentsActivity : AppCompatActivity() {
     }
 
     private fun onLoadCommentsSuccess(list: List<CommentPublic>){
-        val comments= ArrayList<CommentPublic>()
-        comments.add(CommentPublic(1,"comment1","2020.02.02",3,2, UserPublic(1,"name", "email","first", "name")))
-        comments.add(CommentPublic(2,"comment2","2020.02.03",3,2, UserPublic(1,"name", "email","first", "name")))
-        adapter = CommentsAdapter(applicationContext, comments, token)
+        adapter = CommentsAdapter(applicationContext, list as MutableList<CommentPublic>, token)
         rv_comments.adapter = adapter
     }
 

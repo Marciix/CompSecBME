@@ -36,10 +36,6 @@ class ImagesAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        //TODO: Set ImageView
-
-        //val imageUrl = caffItems[position]
-        //Glide.with(context).load(imageUrl).into(holder.imageView)
         val id=caffItems[position].id
         val url = "https://caffshop-api.nkelemen.hu/caffitems/$id/preview.jpg"
         val glideUrl = GlideUrl(url) { mapOf(Pair("Authorization", token)) }

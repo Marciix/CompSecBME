@@ -25,7 +25,7 @@ interface CAFFApi {
     @GET("caffitems/search/{keyword}")
     fun getCaffItemsSearch(@Header("Authorization") token:String,@Path("keyword") keyword: String, @Query("withOwner") withOwner: Boolean): Call<List<CaffItemPublic>>
 
-    @GET("caffitems/{id}/comment")
+    @GET("caffitems/{id}/comments")
     fun getCaffItemsByIDComment(@Header("Authorization") token:String, @Path("id") id: Int, @Query("withAuthors") withOwner: Boolean): Call<List<CommentPublic>>
 
     @POST("caffitems/upload")
