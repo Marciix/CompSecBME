@@ -30,6 +30,7 @@
 *.exe
 *.out
 *.app
+/parser/CaffParser/CaffParser/CaffParser.vcxproj.user
 
 
 ## Ignore Visual Studio temporary files, build results, and
