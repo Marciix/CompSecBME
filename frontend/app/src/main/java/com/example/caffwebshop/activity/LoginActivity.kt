@@ -1,25 +1,23 @@
-
 package com.example.caffwebshop.activity
-
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import android.util.Patterns
 import android.widget.Toast
 import com.example.caffwebshop.R
+import com.example.caffwebshop.model.UserAuthenticateModel
+import com.example.caffwebshop.model.UserLoginResponse
+import com.example.caffwebshop.network.AuthInteractor
 import kotlinx.android.synthetic.main.activity_login.*
 
 
 class LoginActivity : AppCompatActivity() {
 
-
-
-
+    private lateinit var authInteractor: AuthInteractor
 
     public override fun onCreate(savedInstanceState: Bundle?) {
+        authInteractor= AuthInteractor()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
         btn_login!!.setOnClickListener { login() }
@@ -31,23 +29,13 @@ class LoginActivity : AppCompatActivity() {
 
     fun login() {
         Log.d(TAG, "Login")
-        if (!validate()) {
-            onLoginFailed()
-            return
-        }
-        btn_login!!.isEnabled = false
 
-        val email = input_username!!.text.toString()
-        val password = input_password!!.text.toString()
+        btn_login!!.isEnabled = true
 
-        // TODO: Implement your own authentication logic here.
-        Handler().postDelayed(
-            { // On complete call either onLoginSuccess or onLoginFailed
-                onLoginSuccess()
-                // onLoginFailed();
+        val user=UserAuthenticateModel(input_username.text.toString(),input_password.text.toString())
+        authInteractor.login(user, this::onLoginSuccess,this::onLoginError)
 
-            }, 3000
-        )
+
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -55,8 +43,6 @@ class LoginActivity : AppCompatActivity() {
         if (requestCode == REQUEST_SIGNUP) {
             if (resultCode == RESULT_OK) {
 
-                // TODO: Implement successful signup logic here
-                // By default we just finish the Activity and log them in automatically
                 finish()
             }
         }
@@ -67,21 +53,25 @@ class LoginActivity : AppCompatActivity() {
         moveTaskToBack(true)
     }
 
-    fun onLoginSuccess() {
-        btn_login!!.isEnabled = true
-        // val intent = Intent(applicationContext, MainActivity::class.java)
-        //startActivityForResult(intent, REQUEST_SIGNUP)
-        finish()
 
 
+    fun onLoginSuccess(ret: UserLoginResponse){
+
+        val token ="Bearer "+ret.jwtToken
+        val intent = Intent(applicationContext, WebshopActivity::class.java)
+        intent.putExtra("token", token)
+        startActivity(intent)
     }
 
-    fun onLoginFailed() {
-        Toast.makeText(baseContext, "Login failed", Toast.LENGTH_LONG).show()
-        btn_login!!.isEnabled = true
+    fun onLoginError(e: Throwable){
+        input_username.error="Not a valid username or password!"
+        input_password.error="Not a valid username or password!"
+        e.printStackTrace()
     }
 
-    fun validate(): Boolean {
+
+
+    /*fun validate(): Boolean {
         var valid = true
         val email = input_username!!.text.toString()
         val password = input_password!!.text.toString()
@@ -98,7 +88,7 @@ class LoginActivity : AppCompatActivity() {
             input_password!!.error = null
         }
         return valid
-    }
+    }*/
 
     companion object {
         private const val TAG = "LoginActivity"

@@ -2,10 +2,7 @@ package com.example.caffwebshop.network
 
 import android.os.Handler
 import android.util.Log
-import com.example.caffwebshop.model.CaffItemCreation
-import com.example.caffwebshop.model.CaffItemPublic
-import com.example.caffwebshop.model.CommentCreationModel
-import com.example.caffwebshop.model.CommentPublic
+import com.example.caffwebshop.model.*
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -71,14 +68,14 @@ class CAFFInteractor {
     }
 
     @JvmOverloads
-    fun getCaffItemsSearch(token: String, param: String, withOwner :Boolean = false, onSuccess: (CaffItemPublic)->Unit, onError: (Throwable) -> Unit){
+    fun getCaffItemsSearch(token: String, param: String, withOwner :Boolean = false, onSuccess: (List<CaffItemPublic>)->Unit, onError: (Throwable) -> Unit){
         val getRequest=caffApi.getCaffItemsSearch(token, param, withOwner)
         runCallOnBackgroundThread(getRequest,onSuccess,onError)
 
     }
 
     @JvmOverloads
-    fun getCaffItemsByIDComment(token: String, param: Int, withAuthors :Boolean = false, onSuccess: (CommentPublic)->Unit, onError: (Throwable) -> Unit){
+    fun getCaffItemsByIDComment(token: String, param: Int, withAuthors :Boolean = false, onSuccess: (List<CommentPublic>)->Unit, onError: (Throwable) -> Unit){
         val getRequest=caffApi.getCaffItemsByIDComment(token, param, withAuthors)
         runCallOnBackgroundThread(getRequest,onSuccess,onError)
 
@@ -94,7 +91,7 @@ class CAFFInteractor {
         runCallOnBackgroundThread(buyRequest,onSucces,onError)
     }
 
-    fun commentCaffItem(token: String, id: Int, comment: CommentCreationModel, onSucces: (Int)->Unit, onError: (Throwable) -> Unit){
+    fun commentCaffItem(token: String, id: Int, comment: CommentCreationModel, onSucces: (IdResult)->Unit, onError: (Throwable) -> Unit){
         val commentRequest=caffApi.commentCaffItem(token, id, comment)
         runCallOnBackgroundThread(commentRequest,onSucces,onError)
     }

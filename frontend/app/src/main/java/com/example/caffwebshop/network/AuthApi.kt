@@ -1,5 +1,6 @@
 package com.example.caffwebshop.network
 
+import com.example.caffwebshop.model.IdResult
 import com.example.caffwebshop.model.UserAuthenticateModel
 import com.example.caffwebshop.model.UserLoginResponse
 import com.example.caffwebshop.model.UserRegistrationModel
@@ -17,5 +18,5 @@ interface AuthApi {
     fun login(@Body param: UserAuthenticateModel): Call<UserLoginResponse>
 
     @POST("auth/register")
-    fun register(@Body param: UserRegistrationModel): Call<Int>
+    fun register(@Body param: UserRegistrationModel): Call<IdResult>
 }

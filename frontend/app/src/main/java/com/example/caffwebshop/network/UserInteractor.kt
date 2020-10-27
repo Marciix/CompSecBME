@@ -1,6 +1,7 @@
 package com.example.caffwebshop.network
 
 import android.os.Handler
+import com.example.caffwebshop.model.UserModifyModel
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -42,9 +43,9 @@ class UserInteractor {
         runCallOnBackgroundThread(addRequest,onSuccess, onError)
     }
 
-    fun delete(token: String, param: Int, onSuccess: (Void) -> Unit, onError: (Throwable) -> Unit){
+    fun delete(token: String, id: Int, param: UserModifyModel, onSuccess: (Void) -> Unit, onError: (Throwable) -> Unit){
 
-        val deleteRequest=userApi.deleteUser(token, param)
+        val deleteRequest=userApi.deleteUser(token, id, param)
         runCallOnBackgroundThread(deleteRequest,onSuccess, onError)
     }
 }

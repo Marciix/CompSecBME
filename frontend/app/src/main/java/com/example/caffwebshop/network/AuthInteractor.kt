@@ -1,6 +1,8 @@
 package com.example.caffwebshop.network
 
 import android.os.Handler
+import android.util.Log
+import com.example.caffwebshop.model.IdResult
 import com.example.caffwebshop.model.UserAuthenticateModel
 import com.example.caffwebshop.model.UserLoginResponse
 import com.example.caffwebshop.model.UserRegistrationModel
@@ -32,6 +34,8 @@ class AuthInteractor {
             try {
 
                 val response = call.execute().body()!!
+
+                //Log.d("code", call.execute().code().toString())
                 handler.post {
                     onSuccess(response)
                 }
@@ -49,7 +53,7 @@ class AuthInteractor {
         runCallOnBackgroundThread(loginRequest,onSuccess, onError)
     }
 
-    fun register(param: UserRegistrationModel, onSuccess: (Int) -> Unit, onError: (Throwable) -> Unit){
+    fun register(param: UserRegistrationModel, onSuccess: (IdResult) -> Unit, onError: (Throwable) -> Unit){
 
         val registerRequest=authApi.register(param)
         runCallOnBackgroundThread(registerRequest,onSuccess, onError)

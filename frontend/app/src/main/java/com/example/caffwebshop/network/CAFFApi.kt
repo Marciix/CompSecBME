@@ -1,9 +1,6 @@
 package com.example.caffwebshop.network
 
-import com.example.caffwebshop.model.CaffItemCreation
-import com.example.caffwebshop.model.CaffItemPublic
-import com.example.caffwebshop.model.CommentCreationModel
-import com.example.caffwebshop.model.CommentPublic
+import com.example.caffwebshop.model.*
 import retrofit2.Call
 import retrofit2.http.*
 
@@ -22,14 +19,14 @@ interface CAFFApi {
     @GET("caffitems/{id}/download")
     fun getCaffItemsByIDDownload(@Header("Authorization") token:String,@Path("id") id: Int): Call<Void>
 
-    @GET("caffitems/{id}/preview")
+    @GET("caffitems/{id}/preview.jpg")
     fun getCaffItemsByIDPreview(@Header("Authorization") token:String,@Path("id") id: Int): Call<Void>
 
     @GET("caffitems/search/{keyword}")
-    fun getCaffItemsSearch(@Header("Authorization") token:String,@Path("keyword") keyword: String, @Query("withOwner") withOwner: Boolean): Call<CaffItemPublic>
+    fun getCaffItemsSearch(@Header("Authorization") token:String,@Path("keyword") keyword: String, @Query("withOwner") withOwner: Boolean): Call<List<CaffItemPublic>>
 
     @GET("caffitems/{id}/comment")
-    fun getCaffItemsByIDComment(@Header("Authorization") token:String, @Path("id") id: Int, @Query("withAuthors") withOwner: Boolean): Call<CommentPublic>
+    fun getCaffItemsByIDComment(@Header("Authorization") token:String, @Path("id") id: Int, @Query("withAuthors") withOwner: Boolean): Call<List<CommentPublic>>
 
     @POST("caffitems/upload")
     fun uploadCaffItem(@Header("Authorization") token:String, @Body param: CaffItemCreation): Call<Int>
@@ -38,7 +35,7 @@ interface CAFFApi {
     fun buyCaffItem(@Header("Authorization") token:String,@Path("id") id: Int):Call<Void>
 
     @POST("caffitems/{id}/comments")
-    fun commentCaffItem(@Header("Authorization") token:String,@Path("id") id: Int, @Body comment: CommentCreationModel): Call<Int>
+    fun commentCaffItem(@Header("Authorization") token:String,@Path("id") id: Int, @Body comment: CommentCreationModel): Call<IdResult>
 
     @DELETE("caffitems/{id}")
     fun deleteCaffItemByID(@Header("Authorization") token:String, @Path("id") id: Int): Call<Void>

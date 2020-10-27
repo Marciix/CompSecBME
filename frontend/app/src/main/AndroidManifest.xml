@@ -13,14 +13,24 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppTheme">
-        <activity android:name=".activity.SignupActivity">
-        </activity>
-        <activity android:name=".activity.LoginActivity">
+        <activity android:name=".activity.UploadActivity"
+                  android:label="@string/title_activity_upload">
         </activity>
         <activity
-                android:name=".MainActivity"
-                android:label="@string/app_name"
+                android:name=".activity.CommentsActivity"
+                android:label="@string/title_activity_comments"
                 android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+        <activity
+                android:name=".activity.WebshopActivity"
+                android:label="@string/title_activity_webshop"
+                android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+        <activity android:name=".activity.SignupActivity">
+        </activity>
+        <activity
+                android:name=".activity.LoginActivity"
+                android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
