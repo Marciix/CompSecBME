@@ -39,9 +39,7 @@ class CommentsActivity : AppCompatActivity() {
             .load(glideUrl)
             .into(iv_preview)
 
-        caffInteractor.getCaffItemsByIDComment(token=token, param=id,onSuccess = this::onLoadCommentsSuccess, onError = this::onLoadCommentsError)
-
-
+        caffInteractor.getCaffItemsByIDComment(token=token, param=id,withAuthors = true, onSuccess = this::onLoadCommentsSuccess, onError = this::onLoadCommentsError)
     }
 
     private fun onLoadCommentsSuccess(list: List<CommentPublic>){
