@@ -39,6 +39,8 @@ class CommentsActivity : AppCompatActivity() {
             .load(glideUrl)
             .into(iv_preview)
 
+
+        //withauthors added
         caffInteractor.getCaffItemsByIDComment(token=token, param=id,withAuthors = true, onSuccess = this::onLoadCommentsSuccess, onError = this::onLoadCommentsError)
     }
 
