@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/menuComment"
+        android:title="@string/j_komment" />
+
+    <item
+        android:id="@+id/menuDescription"
+        android:title="@string/le_r_s" />
+
+</menu>

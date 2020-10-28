@@ -2,6 +2,7 @@ package com.example.caffwebshop.fragment
 
 import android.app.Activity
 import android.app.Dialog
+import android.graphics.Color
 import android.os.Bundle
 import android.support.v4.app.DialogFragment
 import android.support.v7.app.AlertDialog
@@ -21,9 +22,17 @@ class CommentDialogFragment: DialogFragment(){
         fun onCommentCreated(comment: String)
     }
 
+
+    override fun onStart() {
+        super.onStart()
+        (dialog as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.BLACK)
+        (dialog as AlertDialog).getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.BLACK)
+
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val act=this.activity
+        val act=this.activity //implementálja-e interfacet pl. itt ifben -> listener.getakármi
         a=this.activity as Activity
 
         if(act is CommentCreationListener){
