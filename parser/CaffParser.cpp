@@ -38,8 +38,6 @@ typedef struct pixel {
 }pixel;
 
 int ParseAndValidateCaff(const char* _tempDir, const char* _validCaffDir, const char* _previewDir) {
-
-	//TODO move CAFF to validcaffdir
 	
 	std::string tempDir = _tempDir;
 	std::string validCaffDir = _validCaffDir;
