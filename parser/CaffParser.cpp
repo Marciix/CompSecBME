@@ -4,6 +4,8 @@
 #include<fstream>
 #include<stdint.h>
 #include<list>
+#include<stdio.h>
+#include<string.h>
 
 typedef struct caffHeader {
 	char magic[5];
@@ -64,30 +66,53 @@ int ParseAndValidateCaff(const char* _tempDir, const char* _validCaffDir, const 
 #pragma region WhichBlock
 			myfile.read(reinterpret_cast<char*>(&id), sizeof(uint8_t)); //read id byte
 			if (id > 3) {
-				break;
+				return 1;
 			}
 			std::cout << "ID: " << unsigned(id) << std::endl;
 
 			myfile.read(reinterpret_cast<char*>(&length), sizeof(uint64_t));
 			std::cout << "Length: " << length << std::endl;
+			if(length < 14){  //14-bytes is the shortest possible valid block
+				return 1;
+			}
 #pragma endregion
 
 #pragma region ID1
 			if (id == 0x1) {
 				//myfile.read(reinterpret_cast<char*>(&buffer), length);
 				myfile.read(reinterpret_cast<char*>(&h.magic), 4);
+
+				// Appending \0 to CAFF magic header
+				h.magic[4] = '\0';
+
+				int comp = strcmp(h.magic, "CAFF\0");
+				if(comp != 0){
+					return 1;
+				}
+				std::cout << "Comparing magic (0 if equal): " << comp << std::endl;
+
+
 				myfile.read(reinterpret_cast<char*>(&h.header_size), 8);
+				
+				//checking if header_size and length param match up
+				if(h.header_size != length){
+					return 1;
+				}
+
 				myfile.read(reinterpret_cast<char*>(&h.num_anim), 8);
 
-				//restore balance in the force
+				//restore balance to the force
 				h.num_anim -= anims_read;
-
-				//TODO append '\0' not as a dumbass
-				h.magic[4] = '\0';
 
 				std::cout << "Magic: " << h.magic << std::endl;
 				std::cout << "Header size: " << h.header_size << std::endl;
 				std::cout << "Num of anim: " << h.num_anim << std::endl;
+				
+				// Always 20: magic : 4 + 2*8 for header_size and num_anim
+				if(length != 20){
+					return 1;
+				}
+				std::cout << "Size of H: " << sizeof(h.magic) - 1 + 2* sizeof(h.header_size) << std::endl;
 			}
 #pragma endregion
 
@@ -113,6 +138,11 @@ int ParseAndValidateCaff(const char* _tempDir, const char* _validCaffDir, const 
 				}
 				
 				std::cout << "Creator: " << creator << std::endl;
+
+				//checking if size is equal to length
+				if(length != (14 + creator_len)){ // 14 is the date (6 bytes) + 8 byte integer
+					return 1;
+				}
 			}
 #pragma endregion
 
@@ -131,13 +161,22 @@ int ParseAndValidateCaff(const char* _tempDir, const char* _validCaffDir, const 
 				//TODO append '\0' not as a dumbass
 				ciffH.magic[4] = '\0';
 				std::cout << "CIFF Magic: " << ciffH.magic << std::endl;
+				int comp2 = strcmp(ciffH.magic, "CIFF\0");
+				if(comp2 != 0){
+					return 1;
+				}
+				std::cout << "CIFF Header magic compare (0 if equals): " << comp2 << std::endl;
 
 				myfile.read(reinterpret_cast<char*>(&ciffH.header_size), sizeof(uint64_t));
 				std::cout << "CIFF Header size: " << ciffH.header_size << std::endl;
 
 				myfile.read(reinterpret_cast<char*>(&ciffH.content_size), sizeof(uint64_t));
 				std::cout << "CIFF Content size: " << ciffH.content_size << std::endl;
-
+				
+				// matching length to the contents
+				if(length != sizeof(duration) + ciffH.header_size + ciffH.content_size){
+					return 1;
+				}
 
 				myfile.read(reinterpret_cast<char*>(&ciffH.width), sizeof(uint64_t));
 				std::cout << "CIFF Width: " << ciffH.width << std::endl;
@@ -145,13 +184,17 @@ int ParseAndValidateCaff(const char* _tempDir, const char* _validCaffDir, const 
 				myfile.read(reinterpret_cast<char*>(&ciffH.height), sizeof(uint64_t));
 				std::cout << "CIFF Height: " << ciffH.height << std::endl;
 
+				if(ciffH.content_size != ciffH.width * ciffH.height *3){
+					return 1;
+				}
+				
+				//empty it in case of other type 2 block comes
 				caption.clear();
 
-				//Code get's KILLED somewhere between two prints in here on 3rd iteration
-
 				myfile.read(reinterpret_cast<char*>(&char_buffer), sizeof(char));
-				printf("Ascii code is %d\n", char_buffer);
+				printf("Ascii code of first char is %d\n", char_buffer);
 				while (char_buffer != '\n') {
+					if(char_buffer == '\n') break;
 					caption.push_back(char_buffer);
 					myfile.read(reinterpret_cast<char*>(&char_buffer), sizeof(char));
 				}
@@ -162,6 +205,8 @@ int ParseAndValidateCaff(const char* _tempDir, const char* _validCaffDir, const 
 					ciffH.caption += c;
 				}
 
+				//TODO: do remaining checks
+				
 				std::cout << "Caption: " << ciffH.caption << std::endl;
 
 				int tags_length = ciffH.header_size - sizeof(ciffH.magic) - sizeof(ciffH.header_size) - sizeof(ciffH.content_size);

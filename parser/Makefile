@@ -11,8 +11,15 @@ clean-windows:
 	del Release\CaffParser.dll
 	
 build-linux:
-	mkdir Release 
+	mkdir -p  Release 
 	$(CC) $(CFLAGS) $(SOURCE) -o Release/CaffParser.so
 
 clean-linux:
-	rm Release/CaffParser.so
+	rm -f Release/CaffParser.so
+
+build-test:
+	mkdir -p  Release 
+	$(CC) $(CFLAGS) $(SOURCE) -o Release/libcaff.so
+
+clean-test:
+	rm -f Release/libcaff.so
