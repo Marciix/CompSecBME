@@ -59,8 +59,7 @@ int ParseAndValidateCaff(const char* _tempDir, const char* _validCaffDir, const 
 	myfile.open(tempDir.c_str(), std::ios::in | std::ios::binary);
 
 	if (myfile) {
-		while (myfile.good() && !myfile.eof())
-		{
+		while (myfile.good() && !myfile.eof()){
 #pragma region WhichBlock
 			myfile.read(reinterpret_cast<char*>(&id), sizeof(uint8_t)); //read id byte
 			if (id > 3) {
@@ -156,7 +155,6 @@ int ParseAndValidateCaff(const char* _tempDir, const char* _validCaffDir, const 
 				////////////////////////////////////////////////
 				myfile.read(reinterpret_cast<char*>(&ciffH.magic), 4);
 
-				//TODO append '\0' not as a dumbass
 				ciffH.magic[4] = '\0';
 				std::cout << "CIFF Magic: " << ciffH.magic << std::endl;
 				int comp2 = strcmp(ciffH.magic, "CIFF\0");
@@ -202,8 +200,6 @@ int ParseAndValidateCaff(const char* _tempDir, const char* _validCaffDir, const 
 				for (auto c : caption) {
 					ciffH.caption += c;
 				}
-
-				//TODO: do remaining checks
 				
 				std::cout << "Caption: " << ciffH.caption << std::endl;
 
@@ -252,15 +248,14 @@ int ParseAndValidateCaff(const char* _tempDir, const char* _validCaffDir, const 
 				}
 				if (!generated) {
 					std::cout << "Building preview ..." << std::endl;
-					//for(auto p : pixels){
-					// std::cout << "{" << (int)p.r << ", " << (int)p.g << ", " << (int)p.b << "}" << std::endl;
-					//}
 					generated = true;
-					//building image from pixels
+					//building image header
 					image << "P3" << std::endl;
 					image << ciffH.width << " " << ciffH.height << std::endl;
 					image << "255" << std::endl;
 
+
+					// writing pixel data
 					for (int i = 0; i < (int)ciffH.height; i++) {
 						for (int j = 0; j < (int)ciffH.width; j++) {
 							image << (int)pixels.front().r << " " << (int)pixels.front().g << " " << (int)pixels.front().b << std::endl;
@@ -275,6 +270,7 @@ int ParseAndValidateCaff(const char* _tempDir, const char* _validCaffDir, const 
 		}
 
 		myfile.close();
+	// file is wrong
 	} else {
 		return 1;
 	}
