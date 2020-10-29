@@ -45,6 +45,10 @@ int ParseAndValidateCaff(const char* _tempDir, const char* _validCaffDir, const 
 
 	//variables
 	uint8_t id;
+	//bools for: if we detected given ID yet or not
+	bool r1 = false;
+	bool r2 = false;
+	bool r3 = false;
 	uint64_t length;
 	char char_buffer;
 	bool generated = false;
@@ -72,10 +76,17 @@ int ParseAndValidateCaff(const char* _tempDir, const char* _validCaffDir, const 
 			if(length < 14){  //14-bytes is the shortest possible valid block
 				return 1;
 			}
+
+			//if read all necessary elements, and no CIFF section is left, return 0
+			if(r1 && r2 && r3 && h.num_anim == 0){
+				return 0;
+			}
 #pragma endregion
 
 #pragma region ID1
 			if (id == 0x1) {
+				//confirm we recieved ID1 section
+				r1 = true;
 				//myfile.read(reinterpret_cast<char*>(&buffer), length);
 				myfile.read(reinterpret_cast<char*>(&h.magic), 4);
 
@@ -115,7 +126,9 @@ int ParseAndValidateCaff(const char* _tempDir, const char* _validCaffDir, const 
 
 #pragma region ID2
 			if (id == 0x2) {
-				//id == 2 : CREDITS
+				//confirm we recieved ID2 section
+				r2 = true;
+
 				createDate date;
 				uint64_t creator_len;
 				myfile.read(reinterpret_cast<char*>(&date.year), 2);
@@ -145,6 +158,9 @@ int ParseAndValidateCaff(const char* _tempDir, const char* _validCaffDir, const 
 
 #pragma region ID3
 			if (id == 0x3 && h.num_anim != 0) {
+				//confirm we recieved ID3
+				r3 = true;
+
 				anims_read++;
 				h.num_anim--;
 				myfile.read(reinterpret_cast<char*>(&duration), sizeof(uint64_t));
