@@ -37,11 +37,11 @@ typedef struct pixel {
 	uint8_t b;
 }pixel;
 
-int ParseAndValidateCaff(const char* _tempDir, const char* _validCaffDir, const char* _previewDir) {
+int ParseAndValidateCaff(const char* _caffDir, const char* _previewDir, const char* _jsonDir) {
 	
-	std::string tempDir = _tempDir;
-	std::string validCaffDir = _validCaffDir;
+	std::string caffDir = _caffDir;
 	std::string previewDir = _previewDir;
+	std::string jsonDir = _jsonDir;
 
 	//variables
 	uint8_t id;
@@ -52,6 +52,7 @@ int ParseAndValidateCaff(const char* _tempDir, const char* _validCaffDir, const 
 	uint64_t length;
 	char char_buffer;
 	bool generated = false;
+	bool infogen = false;
 	uint64_t duration;
 	ciffHeader ciffH;
 	caffHeader h;
@@ -60,7 +61,9 @@ int ParseAndValidateCaff(const char* _tempDir, const char* _validCaffDir, const 
 
 	std::ifstream myfile;
 	std::ofstream image(previewDir.c_str());
-	myfile.open(tempDir.c_str(), std::ios::in | std::ios::binary);
+	std::ofstream json(jsonDir.c_str());
+
+	myfile.open(caffDir.c_str(), std::ios::in | std::ios::binary);
 
 	if (myfile) {
 		while (myfile.good() && !myfile.eof()){
@@ -242,7 +245,31 @@ int ParseAndValidateCaff(const char* _tempDir, const char* _validCaffDir, const 
 				for (auto s : ciffH.tags) {
 					std::cout << "-> " << s << std::endl;
 				}
+			
+				////////////////////////////////////////////////
+				//                 WRITE JSON                 //
+				////////////////////////////////////////////////
+				if(!infogen){
+					infogen = true;
+					std::string sep = ",";
+
+					json << "{" << std::endl;
+					json << "\t\"title\": \"" << ciffH.caption << "\","<< std::endl;
+					json << "\t\"tags\": [" << std::endl;
+					int count = 0;
+					for(auto t: ciffH.tags){
+						if(count == ciffH.tags.size()-1){
+							json << "\t\t\"" << t << "\"" << std::endl;
+						}else{
+							json  << "\t\t\"" <<  t  << "\"" << sep << std::endl;
+						}
+						count++;
+					}
+					json << "\t]" << std::endl;
+					json << "}" << std::endl;
+				}
 			}
+
 #pragma endregion
 
 #pragma region GeneratePreview
