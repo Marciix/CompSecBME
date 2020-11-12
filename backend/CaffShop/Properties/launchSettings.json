@@ -16,17 +16,20 @@
       "applicationUrl": "https://localhost:5001;http://localhost:5000",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "DB_HOST": "localhost",
-        "DB_NAME": "caffshop",
-        "DB_USER": "caffshop",
-        "DB_PASS": "changeme",
-        "DB_PORT": "33060",
-        "JWT_SECRET": "changethissecrettoo",
-        "DB_MIGRATE": "TRUE",
-        "UP_BASE_DIR_PATH": "Uploads",
-        "UP_TMP_DIR_PATH": "",
-        "PREVIEW_DIR_NAME": "",
-        "CAFF_DIR_NAME": ""
+        
+        "MySqlServerOptions__HOST": "localhost",
+        "MySqlServerOptions__NAME": "caffshop",
+        "MySqlServerOptions__USER": "caffshop",
+        "MySqlServerOptions__PASS": "changeme",
+        "MySqlServerOptions__PORT": "33060",
+        "MySqlServerOptions__DoMigration": "true",
+        
+        "Upload__UploadBaseDir": "Uploads",
+        "Upload__TempDirPath": "",
+        "Upload__PrevDirPath": "",
+        "Upload__CaffDirPath": "",
+        
+        "JWT_SECRET": "changethissecrettoo"
       }
     }
   }

@@ -14,8 +14,10 @@ using Microsoft.AspNetCore.StaticFiles;
 using System.Net.Http.Headers;
 using CaffShop.Entities;
 using CaffShop.Models.Exceptions;
-using CaffShop.Models.Settings;
+using CaffShop.Models.Options;
 using ImageMagick;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace CaffShop.Controllers
 {
@@ -23,23 +25,22 @@ namespace CaffShop.Controllers
     [Route("[controller]")]
     public class CaffItemsController : Controller
     {
-
         private readonly IMapper _mapper;
         private readonly ICaffItemService _caffItemService;
         private readonly ICommentService _commentService;
         private readonly IPurchaseService _purchaseService;
         private readonly ICaffParserWrapper _caffParserWrapper;
-        private readonly UploadSettings _us;
+        private readonly UploadOptions _options;
 
         public CaffItemsController(IMapper mapper, ICaffItemService caffItemService, ICommentService commentService,
-            IPurchaseService purchaseService, ICaffParserWrapper caffParserWrapper, UploadSettings us)
+            IPurchaseService purchaseService, ICaffParserWrapper caffParserWrapper, IOptions<UploadOptions> options)
         {
             _mapper = mapper;
             _caffItemService = caffItemService;
             _commentService = commentService;
             _purchaseService = purchaseService;
             _caffParserWrapper = caffParserWrapper;
-            _us = us;
+            _options = options.Value;
         }
 
         [HttpGet]
@@ -50,30 +51,32 @@ namespace CaffShop.Controllers
             return Ok(mappedItems);
         }
 
-        [HttpPost("upload"), RequestSizeLimit(UploadSettings.UploadSizeLimit)]
-        public async Task<ActionResult<IdResult>> UploadCaffFile([FromForm] CaffItemCreation itemMeta)
+        [HttpPost("upload"), RequestSizeLimit(UploadOptions.UploadSizeLimit)]
+        public async Task<ActionResult<IdResult>> UploadCaffFile()
         {
             if (Request.Form.Files.Count != 1)
                 return BadRequest("Submitted form data must contain exactly one file");
             var file = Request.Form.Files[0];
 
             var originalName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
-            
+
             if (Path.GetExtension(originalName).ToLower() != ".caff")
                 return BadRequest("The file must be a caff file");
 
             var rndName = RandomFileNameWithTimestamp();
 
-            var tempFilePath = Path.Combine(_us.TempDirPath, rndName + ".caff");
-            var caffFilePath = Path.Combine(_us.CaffDirPath, rndName + ".caff");
-            var prevFilePath = Path.Combine(_us.PrevDirPath, rndName + ".ppm");
+            var tempFilePath = Path.Combine(_options.TempDirPath, rndName + ".caff");
+            var caffFilePath = Path.Combine(_options.CaffDirPath, rndName + ".caff");
+            var prevFilePath = Path.Combine(_options.PrevDirPath, rndName + ".ppm");
+            var jsonFilePath = Path.Combine(_options.TempDirPath, rndName + ".json");
+
 
             await using var stream = new FileStream(tempFilePath, FileMode.Create);
             await file.CopyToAsync(stream);
 
             try
             {
-                _caffParserWrapper.ValidateAndParseCaff(tempFilePath, prevFilePath);
+                _caffParserWrapper.ValidateAndParseCaff(tempFilePath, prevFilePath, jsonFilePath);
                 System.IO.File.Move(tempFilePath, caffFilePath);
             }
             catch (InvalidCaffFileException ex)
@@ -81,14 +84,16 @@ namespace CaffShop.Controllers
                 System.IO.File.Delete(tempFilePath);
                 return BadRequest(ex.Message);
             }
-            
-            var finalPrevFilePath = Path.Combine(_us.PrevDirPath, rndName + UploadSettings.PreviewExtension);
+
+            var finalPrevFilePath = Path.Combine(_options.PrevDirPath, rndName + UploadOptions.PreviewExtension);
             ConvertPpmToJpg(prevFilePath, finalPrevFilePath);
+
+            var caffItm = ReadCaffInfo(jsonFilePath);
 
             var item = new CaffItem
             {
-                Name = itemMeta.Name,
-                Description = itemMeta.Description,
+                Name = caffItm.Title,
+                Description = caffItm.Tags[0] ?? "",
                 OwnerId = UserHelper.GetAuthenticatedUserId(User),
                 UploadedAt = DateTime.Now,
                 CaffPath = caffFilePath,
@@ -100,13 +105,27 @@ namespace CaffShop.Controllers
             try
             {
                 item = await _caffItemService.SaveCaff(item);
-                return Ok(new IdResult{ Id = item.Id});
+                return Ok(new IdResult {Id = item.Id});
             }
             catch
             {
                 // TODO Log error
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
+        }
+
+        private static CaffItemCreation ReadCaffInfo(string jsonPath)
+        {
+            if (!System.IO.File.Exists(jsonPath))
+                throw new FileNotFoundException(jsonPath);
+
+            using var r = new StreamReader(jsonPath);
+            var json = r.ReadToEnd();
+            var item = JsonConvert.DeserializeObject<CaffItemCreation>(json);
+
+            System.IO.File.Delete(jsonPath);
+
+            return item;
         }
 
         private static void ConvertPpmToJpg(string ppmPath, string targetPath)
@@ -247,7 +266,8 @@ namespace CaffShop.Controllers
 
 
         [HttpPost("{id}/comments")]
-        public async Task<ActionResult<IdResult>> CommentOnCaffItem(long id, [FromBody] CommentCreationModel commentModel)
+        public async Task<ActionResult<IdResult>> CommentOnCaffItem(long id,
+            [FromBody] CommentCreationModel commentModel)
         {
             if (false == await _caffItemService.IsCaffExists(id))
                 return NotFound("Caff item not found");
@@ -257,7 +277,7 @@ namespace CaffShop.Controllers
             try
             {
                 var comment = await _commentService.SaveComment(commentModel.Content, id, userId);
-                return Ok(new IdResult{ Id = comment.Id});
+                return Ok(new IdResult {Id = comment.Id});
             }
             catch
             {

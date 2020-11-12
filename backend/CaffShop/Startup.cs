@@ -7,7 +7,7 @@ using AutoMapper;
 using CaffShop.Helpers;
 using CaffShop.Helpers.Wrappers;
 using CaffShop.Interfaces;
-using CaffShop.Models.Settings;
+using CaffShop.Models.Options;
 using CaffShop.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -46,8 +47,13 @@ namespace CaffShop
             services.AddRouting(options => options.LowercaseUrls = true);
 
             // Get Connection string from ENV variables
-            var db = DatabaseSettings.GetFromEnvironment();
-            services.AddDbContext<CaffShopContext>(options => options.UseMySql(db.GetConnectionString()));
+
+            var mySqlServerOptions = Configuration.GetSection(MySqlServerOptions.OptionsName);
+            services.Configure<MySqlServerOptions>(mySqlServerOptions);
+            var connectionString = mySqlServerOptions.Get<MySqlServerOptions>().ConnectionString;
+            services.AddDbContext<CaffShopContext>(options => options.UseMySql(connectionString));
+
+            services.Configure<UploadOptions>(Configuration.GetSection(UploadOptions.OptionsName));
 
             // Add auto mapper profile
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
@@ -58,7 +64,6 @@ namespace CaffShop
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddScoped<ICaffParserWrapper, CaffParserWrapper>();
-            services.AddSingleton<UploadSettings, UploadSettings>();
 
             RegisterJwt(services);
 
@@ -75,7 +80,12 @@ namespace CaffShop
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(
+            IApplicationBuilder app,
+            IWebHostEnvironment env,
+            IOptions<MySqlServerOptions> dbOptions,
+            IOptions<UploadOptions> upOptions
+            )
         {
             if (env.IsDevelopment())
             {
@@ -90,10 +100,6 @@ namespace CaffShop
                 );
             }
 
-            InitUploadDirectories(app.ApplicationServices.GetRequiredService<UploadSettings>());
-
-            app.UseHttpsRedirection();
-
             // Use _myOrigin CORS profile
             app.UseCors("_myOrigin");
 
@@ -104,7 +110,12 @@ namespace CaffShop
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
 
-            MigrateDatabase(app);
+            if (dbOptions.Value.DoMigration)
+            {
+                MigrateDatabase(app);
+            }
+
+            InitUploadDirectories(upOptions.Value);
         }
 
         private static void RegisterSwaggerGeneration(SwaggerGenOptions options)
@@ -139,14 +150,6 @@ namespace CaffShop
             });
         }
 
-        private static void MigrateDatabase(IApplicationBuilder app)
-        {
-            if (Environment.GetEnvironmentVariable("DB_MIGRATE") != "TRUE") return;
-            using var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            var context = serviceScope.ServiceProvider.GetService<CaffShopContext>();
-            context.Database.Migrate();
-        }
-
         private static void RegisterJwt(IServiceCollection services)
         {
             var key = Encoding.ASCII.GetBytes(HelperFunctions.GetEnvironmentValueOrException("JWT_SECRET"));
@@ -170,12 +173,20 @@ namespace CaffShop
                 });
         }
 
-        private static void InitUploadDirectories(UploadSettings us)
+        private static void MigrateDatabase(IApplicationBuilder app)
         {
-            Directory.CreateDirectory(us.UploadBaseDir);
-            Directory.CreateDirectory(us.TempDirPath);
-            Directory.CreateDirectory(us.CaffDirPath);
-            Directory.CreateDirectory(us.PrevDirPath);
+            using var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
+            var context = serviceScope.ServiceProvider.GetService<CaffShopContext>();
+            context.Database.Migrate();
+        }
+
+
+        private static void InitUploadDirectories(UploadOptions options)
+        {
+            Directory.CreateDirectory(options.UploadBaseDir);
+            Directory.CreateDirectory(options.TempDirPath);
+            Directory.CreateDirectory(options.CaffDirPath);
+            Directory.CreateDirectory(options.PrevDirPath);
         }
     }
 }

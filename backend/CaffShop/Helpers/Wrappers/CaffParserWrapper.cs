@@ -11,23 +11,23 @@ namespace CaffShop.Helpers.Wrappers
         [return: MarshalAs(UnmanagedType.I4)]
         private static extern int ParseAndValidateCaff(
             [MarshalAs(UnmanagedType.LPStr)] string tempFilePath,
-            [MarshalAs(UnmanagedType.LPStr)] string validCaffPath,
-            [MarshalAs(UnmanagedType.LPStr)] string prevFilePath
+            [MarshalAs(UnmanagedType.LPStr)] string prevFilePath,
+            [MarshalAs(UnmanagedType.LPStr)] string jsonFilePath
         );
 
-        public void ValidateAndParseCaff(string tempFilePath, string prevFilePath)
+        public void ValidateAndParseCaff(string tempFilePath, string prevFilePath, string jsonFilePath)
         {
-            int returnCode = -1;
+            var returnCode = -1;
             try
             {
-                returnCode = ParseAndValidateCaff(tempFilePath, "", prevFilePath);
+                returnCode = ParseAndValidateCaff(tempFilePath, prevFilePath, jsonFilePath);
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Exception");
                 Console.WriteLine(ex);
             }
-
+            
             if (0 != returnCode)
                 throw new InvalidCaffFileException("Failed to parse caff file");
         }

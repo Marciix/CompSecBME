@@ -2,6 +2,6 @@
 {
     public interface ICaffParserWrapper
     {
-        public void ValidateAndParseCaff(string tempFilePath, string prevFilePath);
+        public void ValidateAndParseCaff(string tempFilePath, string prevFilePath, string jsonFilePath);
     }
 }

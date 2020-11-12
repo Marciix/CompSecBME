@@ -21,5 +21,6 @@ ENV ASPNETCORE_URLS=http://+:80
 RUN mkdir /app/Resources
 COPY --from=build /app ./
 COPY --from=parser /parser/Release/CaffParser.so /app/Resources/CaffParser.so
+COPY backend/CaffShop/Resources/TestFiles /app/Resources/TestFiles
 ENTRYPOINT ["dotnet", "CaffShop.dll"]
 EXPOSE 80/tcp
