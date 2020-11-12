@@ -2,13 +2,13 @@
 
 #ifdef __linux__
 /**
-* @param tempDir: Full path to directory holding temporary caff files until they are handled
-* @param validCaffDir: Full path to directory which holds the valid CAFF files
-* @param previewDir: Full path to directory which holds the preview images to CAFF files
+* @param tempDir: Path to the CAFF file to be parsed
+* @param previewDir: Path where we write the preview image parsed from the CAFF file
+* @param jsonDir: Path to write the JSON file to, containing caption and tags
 */
 extern "C" 
 {
-	int ParseAndValidateCaff(const char* tempDir, const char* validCaffDir, const char* previewDir);
+	int ParseAndValidateCaff(const char* tempDir, const char* previewDir, const char* jsonDir);
 }
 #elif _WIN32
 
@@ -18,12 +18,12 @@ extern "C"
 #define CAFFPARSER_API __declspec(dllimport)
 #endif
 /**
-* @param tempDir: Full path to directory holding temporary caff files until they are handled
-* @param validCaffDir: Full path to directory which holds the valid CAFF files
-* @param previewDir: Full path to directory which holds the preview images to CAFF files
+* @param tempDir: Path to the CAFF file to be parsed
+* @param previewDir: Path where we write the preview image parsed from the CAFF file
+* @param jsonDir: Path to write the JSON file to, containing caption and tags
 */
 extern "C" 
 {
-	CAFFPARSER_API int ParseAndValidateCaff(const char* tempDir, const char* validCaffDir, const char* previewDir);
+	CAFFPARSER_API int ParseAndValidateCaff(const char* tempDir, const char* previewDir, const char* jsonDir);
 }
 #endif
