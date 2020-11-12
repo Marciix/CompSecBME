@@ -81,7 +81,7 @@ class CAFFInteractor {
 
     }
 
-    fun uploadCaffItem(token: String, param: CaffItemCreation, onSucces: (Int)->Unit, onError: (Throwable) -> Unit){
+    fun uploadCaffItem(token: String, param: CaffItemCreation, onSucces: (IdResult)->Unit, onError: (Throwable) -> Unit){
         val uploadRequest=caffApi.uploadCaffItem(token, param)
         runCallOnBackgroundThread(uploadRequest,onSucces,onError)
     }

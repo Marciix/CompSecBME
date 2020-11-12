@@ -23,8 +23,7 @@
         </activity>
         <activity
                 android:name=".activity.WebshopActivity"
-                android:label="@string/title_activity_webshop"
-                android:theme="@style/AppTheme.NoActionBar">
+                android:label="@string/title_activity_webshop">
         </activity>
         <activity android:name=".activity.SignupActivity">
         </activity>

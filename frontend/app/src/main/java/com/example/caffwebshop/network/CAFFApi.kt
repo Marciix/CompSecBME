@@ -29,7 +29,7 @@ interface CAFFApi {
     fun getCaffItemsByIDComment(@Header("Authorization") token:String, @Path("id") id: Int, @Query("withAuthors") withOwner: Boolean): Call<List<CommentPublic>>
 
     @POST("caffitems/upload")
-    fun uploadCaffItem(@Header("Authorization") token:String, @Body param: CaffItemCreation): Call<Int>
+    fun uploadCaffItem(@Header("Authorization") token:String, @Body param: CaffItemCreation): Call<IdResult>
 
     @POST("caffitems/{id}/buy")
     fun buyCaffItem(@Header("Authorization") token:String,@Path("id") id: Int):Call<Void>

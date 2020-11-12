@@ -20,6 +20,7 @@ class LoginActivity : AppCompatActivity() {
         authInteractor= AuthInteractor()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+        title="Login"
         btn_login!!.setOnClickListener { login() }
         link_signup!!.setOnClickListener { // Start the Signup activity
             val intent = Intent(applicationContext, SignupActivity::class.java)
@@ -58,8 +59,10 @@ class LoginActivity : AppCompatActivity() {
     fun onLoginSuccess(ret: UserLoginResponse){
 
         val token ="Bearer "+ret.jwtToken
+        val role= ret.role
         val intent = Intent(applicationContext, WebshopActivity::class.java)
         intent.putExtra("token", token)
+        intent.putExtra("role", role)
         startActivity(intent)
     }
 

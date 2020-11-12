@@ -29,10 +29,8 @@ class DescriptionDialogFragment: DialogFragment() {
 
     private lateinit var listener:DescriptionDataListener
     private lateinit var a:Activity
-    private lateinit var tvID: TextView
     private lateinit var tvName: TextView
     private lateinit var tvDescription: TextView
-    private lateinit var tvOwnerid: TextView
     private lateinit var tvUploadedAt: TextView
     private lateinit var tvOwner: TextView
     private lateinit var viewAct: View
@@ -64,7 +62,6 @@ class DescriptionDialogFragment: DialogFragment() {
         val builder = AlertDialog.Builder(activity!!)
 
         builder.setView(getContentView())
-        builder.setTitle("Descriptions")
         builder.setPositiveButton("ok"
         ) { dialog, _ -> dialog.cancel() }
         return builder.create()
@@ -76,12 +73,11 @@ class DescriptionDialogFragment: DialogFragment() {
 
     private fun getContentView(): View {
         viewAct = LayoutInflater.from(context).inflate(R.layout.li_description, null)
-        tvID=viewAct.findViewById(R.id.tv_caffID)
+
         tvName=viewAct.findViewById(R.id.tv_name)
         tvDescription=viewAct.findViewById(R.id.tv_description)
         tvOwner=viewAct.findViewById(R.id.tv_owner)
         tvUploadedAt=viewAct.findViewById(R.id.tv_uploadedAt)
-        tvOwnerid=viewAct.findViewById(R.id.tv_ownerId)
 
         caffInteractor.getCaffItemsByID(listener.getToken(), withOwner = true, param = listener.getId(),
                 onSuccess = this::onLoadDescriptionSuccess, onError = this::onLoadDescriptionsError )
@@ -91,12 +87,10 @@ class DescriptionDialogFragment: DialogFragment() {
 
     private fun onLoadDescriptionSuccess(caffItem: CaffItemPublic) {
 
-        caffItem.id?.let { tvID.setText(caffItem.id.toString()) }
-        caffItem.name?.let { tvName.setText(caffItem.name) }
-        caffItem.uploadedAt?.let { tvUploadedAt.setText(caffItem.uploadedAt) }
-        caffItem.description?.let { tvID.setText(caffItem.description) }
-        caffItem.owner.userName?.let { tvOwner.setText(caffItem.owner.userName) }
-        caffItem.ownerId?.let { tvOwnerid.setText(caffItem.ownerId.toString()) }
+        caffItem.name.let { tvName.text = caffItem.name }
+        caffItem.uploadedAt.let { tvUploadedAt.text = caffItem.uploadedAt }
+        caffItem.description.let { tvDescription.text = caffItem.description }
+        caffItem.owner.userName.let { tvOwner.text = caffItem.owner.userName }
 
 
 

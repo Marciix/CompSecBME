@@ -21,7 +21,8 @@ import java.net.URL
 class ImagesAdapter(
     private val context: Context,
     private val caffItems: MutableList<CaffItemPublic>,
-    private val token: String)
+    private val token: String,
+    private val role: String)
     : RecyclerView.Adapter<ImagesAdapter.ViewHolder>() {
 
     private val layoutInflater = LayoutInflater.from(context)
@@ -48,6 +49,7 @@ class ImagesAdapter(
             val intent=Intent(it.context, CommentsActivity::class.java)
             intent.flags = FLAG_ACTIVITY_NEW_TASK
             intent.putExtra("token", token)
+            intent.putExtra("role", role)
             intent.putExtra("id", id)
             it.context.startActivity(intent)
 

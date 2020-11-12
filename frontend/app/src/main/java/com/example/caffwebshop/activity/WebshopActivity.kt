@@ -16,14 +16,18 @@ class WebshopActivity : AppCompatActivity() {
 
     private var adapter: ImagesAdapter? = null
     private lateinit var token : String
+    private lateinit var role : String
     private var caffInteractor=CAFFInteractor()
     private lateinit var listOfCaffs: MutableList<CaffItemPublic>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_webshop)
+        title=getString(R.string.Webshop)
 
         token=intent.getStringExtra("token")
+        role=intent.getStringExtra("role")
+
 
         rvImages.layoutManager = GridLayoutManager( this, 2)
         srlImages.setOnRefreshListener { loadImages() }
@@ -31,6 +35,7 @@ class WebshopActivity : AppCompatActivity() {
         fab_upload.setOnClickListener {
             val intent = Intent(applicationContext, UploadActivity::class.java)
             intent.putExtra("token", token)
+            intent.putExtra("role", role)
             startActivity(intent)
         }
     }
@@ -47,7 +52,7 @@ class WebshopActivity : AppCompatActivity() {
     private fun onLoadSucces(list: List<CaffItemPublic>){
         listOfCaffs=list as MutableList<CaffItemPublic>
 
-        adapter = ImagesAdapter(applicationContext, listOfCaffs, token)
+        adapter = ImagesAdapter(applicationContext, listOfCaffs, token, role)
         rvImages.adapter = adapter
         srlImages.isRefreshing = false
     }

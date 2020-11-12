@@ -16,4 +16,9 @@
     <string name="kommentek">Kommentek</string>
     <string name="le_r_s">Leírás</string>
     <string name="j_komment">Új komment</string>
+    <string name="description">Description</string>
+    <string name="date_of_upload">Date of Upload</string>
+    <string name="owner">Owner</string>
+    <string name="Webshop">Webshop</string>
+    <string name="comm">Comments:</string>
 </resources>

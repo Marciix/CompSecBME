@@ -23,6 +23,7 @@ class SignupActivity : AppCompatActivity() {
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_signup)
+        title="Sign Up"
         btn_signup!!.setOnClickListener { signup() }
         link_login!!.setOnClickListener { // Finish the registration screen and return to the Login activity
             finish()

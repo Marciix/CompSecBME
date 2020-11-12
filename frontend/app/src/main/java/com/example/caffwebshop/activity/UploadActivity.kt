@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity
 import android.widget.Toast
 import com.example.caffwebshop.R
 import com.example.caffwebshop.model.CaffItemCreation
+import com.example.caffwebshop.model.IdResult
 import com.example.caffwebshop.network.CAFFInteractor
 import kotlinx.android.synthetic.main.activity_upload.*
 import java.io.File
@@ -14,6 +15,7 @@ import java.io.File
 
 class UploadActivity : AppCompatActivity() {
     private lateinit var token:String
+    private lateinit var role:String
     private lateinit var selectedFile:Uri
     private lateinit var fileToUpload:File
     private lateinit var caffInteractor: CAFFInteractor
@@ -23,6 +25,8 @@ class UploadActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_upload)
         token=intent.getStringExtra("token")
+        role=intent.getStringExtra("role")
+        title="Upload"
 
         btn_choose_file!!.setOnClickListener{
 
@@ -38,14 +42,14 @@ class UploadActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
             if(requestCode == 420 && resultCode == RESULT_OK){
                  selectedFile = data?.data!!
-                tv_file_path.setText(selectedFile.toString())
+                tv_file_path.text = selectedFile.toString()
                 fileToUpload = File(selectedFile.path)
-                caffInteractor.uploadCaffItem(token = token, param = caffItemCreation, onSucces = this::onUploadSucces, onError = this::onUploadError)
+                //caffInteractor.uploadCaffItem(token = token, param = caffItemCreation, onSucces = this::onUploadSucces, onError = this::onUploadError)
             }
     }
 
 
-    private fun onUploadSucces(i:Int){
+    private fun onUploadSucces(res:IdResult){
 
     }
 
