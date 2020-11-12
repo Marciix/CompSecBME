@@ -68,8 +68,15 @@ int ParseAndValidateCaff(const char* _caffDir, const char* _previewDir, const ch
 	if (myfile) {
 		while (myfile.good() && !myfile.eof()){
 #pragma region WhichBlock
+			//if read all necessary elements, and no CIFF section is left, return 0
+			if(r1 && r2 && r3 && h.num_anim == 0){
+				std::cout << "Returning 0, valid file read" << std::endl;
+				return 0;
+			}
+
 			myfile.read(reinterpret_cast<char*>(&id), sizeof(uint8_t)); //read id byte
 			if (id > 3) {
+				std::cout << "Return 1, invalid ID" << std::endl;
 				return 1;
 			}
 			std::cout << "ID: " << unsigned(id) << std::endl;
@@ -77,12 +84,8 @@ int ParseAndValidateCaff(const char* _caffDir, const char* _previewDir, const ch
 			myfile.read(reinterpret_cast<char*>(&length), sizeof(uint64_t));
 			std::cout << "Length: " << length << std::endl;
 			if(length < 14){  //14-bytes is the shortest possible valid block
+				std::cout << "Returning 1 due to length error" << std::endl;
 				return 1;
-			}
-
-			//if read all necessary elements, and no CIFF section is left, return 0
-			if(r1 && r2 && r3 && h.num_anim == 0){
-				return 0;
 			}
 #pragma endregion
 
@@ -98,6 +101,7 @@ int ParseAndValidateCaff(const char* _caffDir, const char* _previewDir, const ch
 
 				int comp = strcmp(h.magic, "CAFF\0");
 				if(comp != 0){
+					std::cout << "Return 1, CAFF comp is wrong" << std::endl;
 					return 1;
 				}
 				std::cout << "Comparing magic (0 if equal): " << comp << std::endl;
@@ -107,6 +111,7 @@ int ParseAndValidateCaff(const char* _caffDir, const char* _previewDir, const ch
 				
 				//checking if header_size and length param match up
 				if(h.header_size != length){
+					std::cout << "Return 1, wrong header size" << std::endl;
 					return 1;
 				}
 
@@ -121,6 +126,7 @@ int ParseAndValidateCaff(const char* _caffDir, const char* _previewDir, const ch
 				
 				// Always 20: magic : 4 + 2*8 for header_size and num_anim
 				if(length != 20){
+					std::cout << "Return 1, size of CAFF Header is not 20" << std::endl;
 					return 1;
 				}
 				std::cout << "Size of H: " << sizeof(h.magic) - 1 + 2* sizeof(h.header_size) << std::endl;
@@ -154,6 +160,7 @@ int ParseAndValidateCaff(const char* _caffDir, const char* _previewDir, const ch
 
 				//checking if size is equal to length
 				if(length != (14 + creator_len)){ // 14 is the date (6 bytes) + 8 byte integer
+					std::cout << "Return 1, wrong creator len" << std::endl;
 					return 1;
 				}
 			}
@@ -178,6 +185,7 @@ int ParseAndValidateCaff(const char* _caffDir, const char* _previewDir, const ch
 				std::cout << "CIFF Magic: " << ciffH.magic << std::endl;
 				int comp2 = strcmp(ciffH.magic, "CIFF\0");
 				if(comp2 != 0){
+					std::cout << "Returning 1, failed CIFF comparison" << std::endl;
 					return 1;
 				}
 				std::cout << "CIFF Header magic compare (0 if equals): " << comp2 << std::endl;
@@ -190,6 +198,7 @@ int ParseAndValidateCaff(const char* _caffDir, const char* _previewDir, const ch
 				
 				// matching length to the contents
 				if(length != sizeof(duration) + ciffH.header_size + ciffH.content_size){
+					std::cout << "Return 1, due to length error in CIFF" << std::endl;
 					return 1;
 				}
 
@@ -200,6 +209,7 @@ int ParseAndValidateCaff(const char* _caffDir, const char* _previewDir, const ch
 				std::cout << "CIFF Height: " << ciffH.height << std::endl;
 
 				if(ciffH.content_size != ciffH.width * ciffH.height *3){
+					std::cout << "Returning 1, due to wrong size" << std::endl;
 					return 1;
 				}
 				
@@ -258,6 +268,20 @@ int ParseAndValidateCaff(const char* _caffDir, const char* _previewDir, const ch
 					json << "\t\"tags\": [" << std::endl;
 					int count = 0;
 					for(auto t: ciffH.tags){
+						//check if string contains '"' char
+						if(t.find('\"') != std::string::npos){
+							std::string n = "";
+							for(char const  &c : t){
+								if(c == '\"'){
+									n += "\\";
+									n += c;
+								}else{
+									n += c;
+								}
+							}
+							t = n;
+						}
+
 						if(count == ciffH.tags.size()-1){
 							json << "\t\t\"" << t << "\"" << std::endl;
 						}else{
@@ -315,7 +339,9 @@ int ParseAndValidateCaff(const char* _caffDir, const char* _previewDir, const ch
 		myfile.close();
 	// file is wrong
 	} else {
+		std::cout << "Return 1 in else branch" << std::endl;
 		return 1;
 	}
+	std:: cout << "Return 0 at end" << std::endl;
 	return 0;
 }
