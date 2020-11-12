@@ -60,7 +60,7 @@ class CAFFInteractor {
 
     }
 
-    fun getCaffItemsByIDDownload(token: String, param: Int, onSuccess: (Void?)->Unit, onError: (Throwable) -> Unit){
+    fun getCaffItemsByIDDownload(token: String, param: Int, onSuccess: (ResponseBody?)->Unit, onError: (Throwable) -> Unit){
         val getRequest=caffApi.getCaffItemsByIDDownload(token, param)
         runCallOnBackgroundThread(getRequest,onSuccess,onError)
 

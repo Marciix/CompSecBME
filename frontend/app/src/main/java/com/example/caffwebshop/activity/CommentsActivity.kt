@@ -2,6 +2,7 @@ package com.example.caffwebshop.activity
 
 import android.content.DialogInterface
 import android.os.Bundle
+import android.os.Environment
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
@@ -20,9 +21,11 @@ import com.example.caffwebshop.network.CAFFInteractor
 import kotlinx.android.synthetic.main.activity_comments.*
 import kotlinx.android.synthetic.main.content_comments.*
 import android.support.v7.app.AlertDialog
-import android.support.v7.widget.RecyclerView
+import android.util.Log
 import okhttp3.ResponseBody
+import java.io.*
 import java.lang.Exception
+import java.io.File.separator
 
 
 class CommentsActivity : AppCompatActivity(),CommentDialogFragment.CommentCreationListener,
@@ -68,14 +71,19 @@ class CommentsActivity : AppCompatActivity(),CommentDialogFragment.CommentCreati
         }
 
         iv_save.setOnClickListener {
-            //TODO: call download
+            caffInteractor.getCaffItemsByIDDownload(token,id,this::onSaveSuccess,this::onSaveError)
         }
 
         iv_delete.setOnClickListener {
-            //TODO: call delete
-            if(role!="admin"){
-                Toast.makeText(applicationContext,"Delete function is not available for you!", Toast.LENGTH_LONG).show()
-            }
+            val builder = AlertDialog.Builder(this)
+            builder.setMessage("Do you really want to delete this file? ")
+            builder.setPositiveButton("Yes", DialogInterface.OnClickListener { dialogInterface: DialogInterface, i: Int ->
+                caffInteractor.deleteCaffItem(token,id,this::onDeleteSuccess, this::onDeleteError)
+            })
+            builder.setNegativeButton("NO", null)
+            builder.show()
+
+
         }
 
 
@@ -97,6 +105,15 @@ class CommentsActivity : AppCompatActivity(),CommentDialogFragment.CommentCreati
 
     }
 
+    private fun onDeleteSuccess(v: Void?){
+        Toast.makeText(applicationContext,"File successfuly deleted!", Toast.LENGTH_LONG).show()
+        finish()
+    }
+
+    private fun onDeleteError(e: Throwable){
+        e.printStackTrace()
+        Toast.makeText(applicationContext,"You are not able to delete this file!", Toast.LENGTH_LONG).show()
+    }
 
     private fun onBuySuccess(v: Void?){
         Toast.makeText(applicationContext,"Successful purchase!", Toast.LENGTH_LONG).show()
@@ -107,13 +124,69 @@ class CommentsActivity : AppCompatActivity(),CommentDialogFragment.CommentCreati
         Toast.makeText(applicationContext,"Unsuccesful purchase!", Toast.LENGTH_LONG).show()
     }
 
+    private fun onSaveSuccess(res: ResponseBody?){
+        if(res==null){
+            onSaveError(Exception())
+        }
+        else {
+            val succ=writeResponseBodyToDisk(res)
+            if(!succ)onSaveError(Exception())
+        }
+    }
+
+    private fun onSaveError(e: Throwable){
+        e.printStackTrace()
+        Toast.makeText(applicationContext,"Unable to download this file!", Toast.LENGTH_LONG).show()
+    }
+
+    private fun writeResponseBodyToDisk(body: ResponseBody): Boolean {
+        try {
+            val fileToSave = File(getExternalFilesDir(null)?.toString() + separator + "$id.caff")
+            var inputStream: InputStream? = null
+            var outputStream: OutputStream? = null
+            try {
+                val fileReader = ByteArray(4096)
+                val fileSize = body.contentLength()
+                var fileSizeDownloaded: Long = 0
+                inputStream = body.byteStream()
+                outputStream = FileOutputStream(fileToSave)
+                while (true) {
+                    val read = inputStream!!.read(fileReader)
+                    if (read == -1) {
+                        break
+                    }
+                    outputStream!!.write(fileReader, 0, read)
+                    fileSizeDownloaded += read.toLong()
+                    Log.d("filedownload", "file download: $fileSizeDownloaded of $fileSize")
+                }
+                outputStream!!.flush()
+                Toast.makeText(applicationContext,"Successful download! Downloaded file: ${fileToSave.absolutePath}", Toast.LENGTH_LONG).show()
+                return true
+            } catch (e: IOException) {
+                return false
+            } finally {
+                if (inputStream != null) {
+                    inputStream!!.close()
+                }
+                if (outputStream != null) {
+                    outputStream!!.close()
+                }
+            }
+        } catch (e: IOException) {
+            return false
+        }
+
+    }
+
 
 
 
     private fun onLoadCommentsSuccess(list: List<CommentPublic>?){
         if(list==null) onLoadCommentsError(Exception("Error: loading comments!"))
-        adapter = CommentsAdapter(applicationContext, list as MutableList<CommentPublic>, token)
-        rv_comments.adapter = adapter
+       else{
+            adapter = CommentsAdapter(applicationContext, list as MutableList<CommentPublic>, token)
+            rv_comments.adapter = adapter
+        }
     }
 
     private fun onLoadCommentsError(e: Throwable){
@@ -129,7 +202,7 @@ class CommentsActivity : AppCompatActivity(),CommentDialogFragment.CommentCreati
 
     private fun onCommentSuccess(res: IdResult?){
         if(res==null) onCommentError(Exception("Error: write comment"))
-        caffInteractor.getCaffItemsByIDComment(token = token, param = id, withAuthors = true, onSuccess = this::onLoadCommentsSuccess, onError = this::onLoadCommentsError)
+        else caffInteractor.getCaffItemsByIDComment(token = token, param = id, withAuthors = true, onSuccess = this::onLoadCommentsSuccess, onError = this::onLoadCommentsError)
 
     }
     private fun onCommentError(e: Throwable){

@@ -29,7 +29,6 @@ class WebshopActivity : AppCompatActivity() {
         token=intent.getStringExtra("token")
         role=intent.getStringExtra("role")
 
-
         rvImages.layoutManager = GridLayoutManager( this, 2)
         srlImages.setOnRefreshListener { loadImages() }
 
@@ -54,11 +53,12 @@ class WebshopActivity : AppCompatActivity() {
         if(list==null){
             onLoadError(Exception("List is null!"))
         }
-        listOfCaffs=list as MutableList<CaffItemPublic>
-
-        adapter = ImagesAdapter(applicationContext, listOfCaffs, token, role)
-        rvImages.adapter = adapter
-        srlImages.isRefreshing = false
+        else{
+            listOfCaffs=list as MutableList<CaffItemPublic>
+            adapter = ImagesAdapter(applicationContext, listOfCaffs, token, role)
+            rvImages.adapter = adapter
+            srlImages.isRefreshing = false
+        }
     }
 
     private fun onLoadError(e:Throwable){

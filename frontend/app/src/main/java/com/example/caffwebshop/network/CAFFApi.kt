@@ -18,7 +18,7 @@ interface CAFFApi {
     fun getCaffItemsByID(@Header("Authorization") token:String, @Path("id") id: Int, @Query("withOwner") withOwner: Boolean): Call<CaffItemPublic>
 
     @GET("caffitems/{id}/download")
-    fun getCaffItemsByIDDownload(@Header("Authorization") token:String,@Path("id") id: Int): Call<Void>
+    fun getCaffItemsByIDDownload(@Header("Authorization") token:String,@Path("id") id: Int): Call<ResponseBody>
 
     @GET("caffitems/{id}/preview.jpg")
     fun getCaffItemsByIDPreview(@Header("Authorization") token:String,@Path("id") id: Int): Call<Void>
