@@ -11,6 +11,7 @@ import com.example.caffwebshop.model.CaffItemPublic
 import com.example.caffwebshop.network.CAFFInteractor
 
 import kotlinx.android.synthetic.main.activity_webshop.*
+import java.lang.Exception
 
 class WebshopActivity : AppCompatActivity() {
 
@@ -49,7 +50,10 @@ class WebshopActivity : AppCompatActivity() {
         caffInteractor.getCaffItems(token= token, onSuccess = this::onLoadSucces, onError = this::onLoadError)
     }
 
-    private fun onLoadSucces(list: List<CaffItemPublic>){
+    private fun onLoadSucces(list: List<CaffItemPublic>?){
+        if(list==null){
+            onLoadError(Exception("List is null!"))
+        }
         listOfCaffs=list as MutableList<CaffItemPublic>
 
         adapter = ImagesAdapter(applicationContext, listOfCaffs, token, role)

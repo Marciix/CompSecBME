@@ -15,6 +15,7 @@ import com.example.caffwebshop.R
 import com.example.caffwebshop.model.CaffItemPublic
 import com.example.caffwebshop.model.CommentPublic
 import com.example.caffwebshop.network.CAFFInteractor
+import java.lang.NullPointerException
 import java.lang.reflect.Array.set
 
 
@@ -85,15 +86,19 @@ class DescriptionDialogFragment: DialogFragment() {
         return viewAct
     }
 
-    private fun onLoadDescriptionSuccess(caffItem: CaffItemPublic) {
+    private fun onLoadDescriptionSuccess(caffItem: CaffItemPublic?) {
+        if(caffItem!=null) {
 
-        caffItem.name.let { tvName.text = caffItem.name }
-        caffItem.uploadedAt.let { tvUploadedAt.text = caffItem.uploadedAt }
-        caffItem.description.let { tvDescription.text = caffItem.description }
-        caffItem.owner.userName.let { tvOwner.text = caffItem.owner.userName }
+            caffItem.name.let { tvName.text = caffItem.name }
+            caffItem.uploadedAt.let { tvUploadedAt.text = caffItem.uploadedAt }
+            caffItem.description.let { tvDescription.text = caffItem.description }
+            caffItem.owner.userName.let { tvOwner.text = caffItem.owner.userName }
 
 
-
+        }
+        else{
+            onLoadDescriptionsError(NullPointerException("CaffItem is null!"))
+        }
 
 
     }

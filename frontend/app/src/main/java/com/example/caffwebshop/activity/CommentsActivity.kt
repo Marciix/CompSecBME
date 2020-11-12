@@ -20,6 +20,9 @@ import com.example.caffwebshop.network.CAFFInteractor
 import kotlinx.android.synthetic.main.activity_comments.*
 import kotlinx.android.synthetic.main.content_comments.*
 import android.support.v7.app.AlertDialog
+import android.support.v7.widget.RecyclerView
+import okhttp3.ResponseBody
+import java.lang.Exception
 
 
 class CommentsActivity : AppCompatActivity(),CommentDialogFragment.CommentCreationListener,
@@ -54,15 +57,13 @@ class CommentsActivity : AppCompatActivity(),CommentDialogFragment.CommentCreati
         }
 
         iv_buy.setOnClickListener {
-            //TODO: call buy
             val builder = AlertDialog.Builder(this)
             builder.setMessage("Do you really want to buy it?")
                 builder.setPositiveButton("Yes", DialogInterface.OnClickListener { dialogInterface: DialogInterface, i: Int ->
-                    //caffInteractor.buyCaffItem(token, id, this::onBuySuccess, this::onBuyError)
+                    caffInteractor.buyCaffItem(token, id, this::onBuySuccess, this::onBuyError)
                 })
             builder.setNegativeButton("NO", null)
             builder.show()
-
 
         }
 
@@ -71,14 +72,14 @@ class CommentsActivity : AppCompatActivity(),CommentDialogFragment.CommentCreati
         }
 
         iv_delete.setOnClickListener {
-            //TODO: call buy
+            //TODO: call delete
             if(role!="admin"){
                 Toast.makeText(applicationContext,"Delete function is not available for you!", Toast.LENGTH_LONG).show()
             }
         }
 
 
-        rv_comments.layoutManager=LinearLayoutManager(applicationContext)
+        rv_comments.layoutManager= LinearLayoutManager(applicationContext)
 
 
         val url = "https://caffshop-api.nkelemen.hu/caffitems/$id/preview.jpg"
@@ -97,7 +98,7 @@ class CommentsActivity : AppCompatActivity(),CommentDialogFragment.CommentCreati
     }
 
 
-    private fun onBuySuccess(){
+    private fun onBuySuccess(v: Void?){
         Toast.makeText(applicationContext,"Successful purchase!", Toast.LENGTH_LONG).show()
     }
 
@@ -109,7 +110,8 @@ class CommentsActivity : AppCompatActivity(),CommentDialogFragment.CommentCreati
 
 
 
-    private fun onLoadCommentsSuccess(list: List<CommentPublic>){
+    private fun onLoadCommentsSuccess(list: List<CommentPublic>?){
+        if(list==null) onLoadCommentsError(Exception("Error: loading comments!"))
         adapter = CommentsAdapter(applicationContext, list as MutableList<CommentPublic>, token)
         rv_comments.adapter = adapter
     }
@@ -125,7 +127,8 @@ class CommentsActivity : AppCompatActivity(),CommentDialogFragment.CommentCreati
         caffInteractor.commentCaffItem(token, id, c, this::onCommentSuccess, this::onCommentError)
     }
 
-    private fun onCommentSuccess(res: IdResult){
+    private fun onCommentSuccess(res: IdResult?){
+        if(res==null) onCommentError(Exception("Error: write comment"))
         caffInteractor.getCaffItemsByIDComment(token = token, param = id, withAuthors = true, onSuccess = this::onLoadCommentsSuccess, onError = this::onLoadCommentsError)
 
     }

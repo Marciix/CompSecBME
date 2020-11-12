@@ -49,7 +49,7 @@ class UploadActivity : AppCompatActivity() {
     }
 
 
-    private fun onUploadSucces(res:IdResult){
+    private fun onUploadSucces(res:IdResult?){
 
     }
 
