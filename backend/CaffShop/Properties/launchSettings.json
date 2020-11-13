@@ -29,7 +29,8 @@
         "Upload__PrevDirPath": "",
         "Upload__CaffDirPath": "",
         
-        "JWT_SECRET": "changethissecrettoo"
+        "JWT_SECRET": "changethissecrettoo",
+        "CAFF_PARSER": "DEFAULT"
       }
     }
   }

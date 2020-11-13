@@ -15,9 +15,7 @@ using System.Net.Http.Headers;
 using CaffShop.Entities;
 using CaffShop.Models.Exceptions;
 using CaffShop.Models.Options;
-using ImageMagick;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
 
 namespace CaffShop.Controllers
 {
@@ -29,18 +27,24 @@ namespace CaffShop.Controllers
         private readonly ICaffItemService _caffItemService;
         private readonly ICommentService _commentService;
         private readonly IPurchaseService _purchaseService;
-        private readonly ICaffParserWrapper _caffParserWrapper;
-        private readonly UploadOptions _options;
+        private readonly ICaffUploadService _caffUploadService;
+        private readonly ILogger<CaffItemsController> _logger;
 
-        public CaffItemsController(IMapper mapper, ICaffItemService caffItemService, ICommentService commentService,
-            IPurchaseService purchaseService, ICaffParserWrapper caffParserWrapper, IOptions<UploadOptions> options)
+        public CaffItemsController(
+            IMapper mapper,
+            ICaffItemService caffItemService,
+            ICommentService commentService,
+            IPurchaseService purchaseService,
+            ICaffUploadService caffUploadService,
+            ILogger<CaffItemsController> logger
+        )
         {
             _mapper = mapper;
             _caffItemService = caffItemService;
             _commentService = commentService;
             _purchaseService = purchaseService;
-            _caffParserWrapper = caffParserWrapper;
-            _options = options.Value;
+            _caffUploadService = caffUploadService;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -63,79 +67,22 @@ namespace CaffShop.Controllers
             if (Path.GetExtension(originalName).ToLower() != ".caff")
                 return BadRequest("The file must be a caff file");
 
-            var rndName = RandomFileNameWithTimestamp();
-
-            var tempFilePath = Path.Combine(_options.TempDirPath, rndName + ".caff");
-            var caffFilePath = Path.Combine(_options.CaffDirPath, rndName + ".caff");
-            var prevFilePath = Path.Combine(_options.PrevDirPath, rndName + ".ppm");
-            var jsonFilePath = Path.Combine(_options.TempDirPath, rndName + ".json");
-
-
-            await using var stream = new FileStream(tempFilePath, FileMode.Create);
-            await file.CopyToAsync(stream);
+            var userId = UserHelper.GetAuthenticatedUserId(User);
 
             try
             {
-                _caffParserWrapper.ValidateAndParseCaff(tempFilePath, prevFilePath, jsonFilePath);
-                System.IO.File.Move(tempFilePath, caffFilePath);
+                var caffItem = await _caffUploadService.UploadCaffFile(file, originalName, userId);
+                return Ok(new IdResult {Id = caffItem.Id});
             }
-            catch (InvalidCaffFileException ex)
+            catch (CaffUploadException ex)
             {
-                System.IO.File.Delete(tempFilePath);
                 return BadRequest(ex.Message);
             }
-
-            var finalPrevFilePath = Path.Combine(_options.PrevDirPath, rndName + UploadOptions.PreviewExtension);
-            ConvertPpmToJpg(prevFilePath, finalPrevFilePath);
-
-            var caffItm = ReadCaffInfo(jsonFilePath);
-
-            var item = new CaffItem
+            catch (Exception ex)
             {
-                Name = caffItm.Title,
-                Description = caffItm.Tags[0] ?? "",
-                OwnerId = UserHelper.GetAuthenticatedUserId(User),
-                UploadedAt = DateTime.Now,
-                CaffPath = caffFilePath,
-                PreviewPath = finalPrevFilePath,
-                InnerName = rndName,
-                OriginalName = originalName
-            };
-
-            try
-            {
-                item = await _caffItemService.SaveCaff(item);
-                return Ok(new IdResult {Id = item.Id});
-            }
-            catch
-            {
-                // TODO Log error
+                _logger.LogError(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
-        }
-
-        private static CaffItemCreation ReadCaffInfo(string jsonPath)
-        {
-            if (!System.IO.File.Exists(jsonPath))
-                throw new FileNotFoundException(jsonPath);
-
-            using var r = new StreamReader(jsonPath);
-            var json = r.ReadToEnd();
-            var item = JsonConvert.DeserializeObject<CaffItemCreation>(json);
-
-            System.IO.File.Delete(jsonPath);
-
-            return item;
-        }
-
-        private static void ConvertPpmToJpg(string ppmPath, string targetPath)
-        {
-            if (false == System.IO.File.Exists(ppmPath))
-                throw new FileNotFoundException();
-
-            using var img = new MagickImage(ppmPath);
-            img.Write(targetPath);
-            System.IO.File.Delete(ppmPath);
         }
 
         [HttpGet("{id}")]
@@ -301,13 +248,6 @@ namespace CaffShop.Controllers
             fileStream.FileDownloadName = fileName;
 
             return fileStream;
-        }
-
-        private static string RandomFileNameWithTimestamp()
-        {
-            var ts = HelperFunctions.GetUnixTimestamp();
-            var rnd = HelperFunctions.GenerateRandomString(10);
-            return $"{ts}_{rnd}";
         }
     }
 }

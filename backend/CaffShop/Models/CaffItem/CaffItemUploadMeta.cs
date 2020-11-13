@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CaffShop.Models.CaffItem
 {
-    public class CaffItemCreation
+    public class CaffItemUploadMeta
     {
         [Required]
         public string Title { get; set; }

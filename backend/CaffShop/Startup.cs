@@ -63,20 +63,22 @@ namespace CaffShop
             services.AddScoped<IPurchaseService, PurchaseService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthenticationService, AuthenticationService>();
-            services.AddScoped<ICaffParserWrapper, CaffParserWrapper>();
+            services.AddScoped<ICaffUploadService, CaffUploadService>();
 
-            RegisterJwt(services);
-
-            // Allow _myOrigin CORS profile
-            services.AddCors(options =>
+            switch (Environment.GetEnvironmentVariable("CAFF_PARSER"))
             {
-                options.AddPolicy("_myOrigin", builder =>
-                {
-                    builder.AllowAnyMethod();
-                    builder.AllowAnyHeader();
-                    builder.AllowAnyOrigin();
-                });
-            });
+                case "MOCK":
+                    services.AddScoped<ICaffParserWrapper, CaffParserWrapperMock>();
+                    break;
+                case "MOCK-FAIL":
+                    services.AddScoped<ICaffParserWrapper, CaffParserWrapperFailMock>();
+                    break;
+                default:
+                    services.AddScoped<ICaffParserWrapper, CaffParserWrapper>();
+                    break;
+            }
+            
+            RegisterJwt(services);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -85,7 +87,7 @@ namespace CaffShop
             IWebHostEnvironment env,
             IOptions<MySqlServerOptions> dbOptions,
             IOptions<UploadOptions> upOptions
-            )
+        )
         {
             if (env.IsDevelopment())
             {
@@ -101,7 +103,12 @@ namespace CaffShop
             }
 
             // Use _myOrigin CORS profile
-            app.UseCors("_myOrigin");
+            app.UseCors(builder =>
+            {
+                builder.AllowAnyMethod();
+                builder.AllowAnyHeader();
+                builder.AllowAnyOrigin();
+            });
 
             app.UseRouting();
 
