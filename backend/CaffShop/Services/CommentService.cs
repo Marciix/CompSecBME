@@ -22,7 +22,7 @@ namespace CaffShop.Services
             var q = _context.Comments.Where(c => c.CaffItemId == caffId).AsQueryable();
 
             if (withAuthors)
-                q = q.Include("Author");
+                q = q.Include(nameof(Comment.Author));
 
             return await q.ToListAsync();
         }

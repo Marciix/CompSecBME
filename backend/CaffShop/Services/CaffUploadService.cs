@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using CaffShop.Entities;
@@ -125,10 +126,11 @@ namespace CaffShop.Services
 
         private CaffItem CreateCaffItem(string originalName, long userId, CaffItemUploadMeta meta)
         {
+
             return new CaffItem
             {
-                Name = meta.Title,
-                Description = meta.Tags[0] ?? "", // TODO
+                Title = meta.Title,
+                Tags = meta.Tags,
                 OwnerId = userId,
                 UploadedAt = DateTime.Now,
                 CaffPath = _caffFilePath,

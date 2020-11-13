@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CaffShop.Entities;
@@ -27,7 +26,7 @@ namespace CaffShop.Services
             var q = _context.CaffItems.AsQueryable();
 
             if (withOwner)
-                q = q.Include("Owner");
+                q = q.Include(nameof(CaffItem.Owner));
 
             return await q.FirstOrDefaultAsync(i => i.Id == id);
         }
@@ -37,7 +36,7 @@ namespace CaffShop.Services
             var q = _context.CaffItems.AsQueryable();
 
             if (withOwner)
-                q = q.Include("Owner");
+                q = q.Include(nameof(CaffItem.Owner));
             return await q.ToListAsync();
         }
 
@@ -46,11 +45,11 @@ namespace CaffShop.Services
             var q = _context.CaffItems.AsQueryable();
 
             q = keywords.Aggregate(q, (current, keyword)
-                => current.Where(i => i.Name.Contains(keyword) || i.Description.Contains(keyword))
+                => current.Where(i => i.Title.Contains(keyword) || i.TagsText.Contains(keyword))
             );
 
             if (withOwner)
-                q = q.Include("Owner");
+                q = q.Include(nameof(CaffItem.Owner));
 
             return await q.ToListAsync();
         }

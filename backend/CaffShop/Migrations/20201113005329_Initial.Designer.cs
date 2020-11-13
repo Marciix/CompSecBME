@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CaffShop.Migrations
 {
     [DbContext(typeof(CaffShopContext))]
-    [Migration("20201018143707_Initial")]
+    [Migration("20201113005329_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -23,23 +23,12 @@ namespace CaffShop.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("id")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("CaffFileSize")
                         .HasColumnType("bigint");
 
                     b.Property<string>("CaffPath")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
-                    b.Property<string>("Description")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
                     b.Property<string>("InnerName")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.Property<string>("OriginalName")
@@ -51,6 +40,13 @@ namespace CaffShop.Migrations
                     b.Property<string>("PreviewPath")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
+                    b.Property<string>("TagsText")
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+
                     b.Property<DateTime>("UploadedAt")
                         .HasColumnType("datetime(6)");
 
@@ -58,101 +54,80 @@ namespace CaffShop.Migrations
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("caff_items");
+                    b.ToTable("CaffItems");
                 });
 
             modelBuilder.Entity("CaffShop.Entities.Comment", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("id")
                         .HasColumnType("bigint");
 
                     b.Property<long>("AuthorId")
-                        .HasColumnName("author_id")
                         .HasColumnType("bigint");
 
                     b.Property<long>("CaffItemId")
-                        .HasColumnName("caff_item_id")
                         .HasColumnType("bigint");
 
                     b.Property<string>("Content")
                         .IsRequired()
-                        .HasColumnName("content")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnName("created_at")
                         .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AuthorId");
 
-                    b.ToTable("comments");
+                    b.ToTable("Comments");
                 });
 
             modelBuilder.Entity("CaffShop.Entities.Purchase", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("id")
                         .HasColumnType("bigint");
 
                     b.Property<long>("CaffItemId")
-                        .HasColumnName("caff_item_id")
                         .HasColumnType("bigint");
 
                     b.Property<DateTime>("PurchasedAt")
-                        .HasColumnName("purchased_at")
                         .HasColumnType("datetime(6)");
 
                     b.Property<long>("UserId")
-                        .HasColumnName("user_id")
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CaffItemId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("purchases");
+                    b.ToTable("Purchases");
                 });
 
             modelBuilder.Entity("CaffShop.Entities.User", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("id")
                         .HasColumnType("bigint");
 
                     b.Property<string>("Email")
-                        .HasColumnName("email")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.Property<string>("FirstName")
-                        .HasColumnName("first_name")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.Property<bool>("IsAdmin")
-                        .HasColumnName("is_admin")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("LastName")
-                        .HasColumnName("last_name")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.Property<byte[]>("PasswordHash")
-                        .HasColumnName("password_hash")
                         .HasColumnType("longblob");
 
                     b.Property<byte[]>("PasswordSalt")
-                        .HasColumnName("password_salt")
                         .HasColumnType("longblob");
 
                     b.Property<string>("UserName")
-                        .HasColumnName("username")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.HasKey("Id");
@@ -174,21 +149,6 @@ namespace CaffShop.Migrations
                     b.HasOne("CaffShop.Entities.User", "Author")
                         .WithMany()
                         .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("CaffShop.Entities.Purchase", b =>
-                {
-                    b.HasOne("CaffShop.Entities.CaffItem", "CaffItem")
-                        .WithMany()
-                        .HasForeignKey("CaffItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CaffShop.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

@@ -30,7 +30,7 @@
         "Upload__CaffDirPath": "",
         
         "JWT_SECRET": "changethissecrettoo",
-        "CAFF_PARSER": "DEFAULT"
+        "CAFF_PARSER": "MOCK"
       }
     }
   }

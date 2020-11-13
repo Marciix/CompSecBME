@@ -10,7 +10,6 @@ namespace CaffShop
         {
         }
 
-
         public virtual DbSet<CaffItem> CaffItems { get; set; }
         public virtual DbSet<Comment> Comments { get; set; }
         public virtual DbSet<Purchase> Purchases { get; set; }
