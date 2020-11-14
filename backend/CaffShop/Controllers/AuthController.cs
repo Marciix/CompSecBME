@@ -32,7 +32,8 @@ namespace CaffShop.Controllers
         }
 
 
-        [HttpPost("login")]
+        [HttpPost("login")]        
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<UserLoginResponse>> Authenticate([FromBody] UserAuthenticateModel model)
         {
             var user = await _authenticationService.Authenticate(model.Username, model.Password);
@@ -48,8 +49,7 @@ namespace CaffShop.Controllers
                 Subject = new ClaimsIdentity(new[]
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                    new Claim(ClaimTypes.Name, user.UserName),
-                    new Claim(ClaimTypes.Role, role)
+                    new Claim(ClaimTypes.Name, user.UserName)
                 }),
                 Expires = DateTime.UtcNow.AddHours(2),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(_jwtSecret),
@@ -67,6 +67,8 @@ namespace CaffShop.Controllers
         }
 
         [HttpPost("register")]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<IdResult>> Register([FromBody] UserRegistrationModel model)
         {
             // map model to entity

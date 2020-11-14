@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using CaffShop.Entities;
 using CaffShop.Helpers;
@@ -67,6 +68,17 @@ namespace CaffShop.Services
         {
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> IsUserAdmin(long id)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+            return user != null && user.IsAdmin;
+        }
+
+        public async Task<bool> IsAuthenticatedUserAdmin(ClaimsPrincipal user)
+        {
+            return await IsUserAdmin(UserHelper.GetAuthenticatedUserId(user));
         }
     }
 }

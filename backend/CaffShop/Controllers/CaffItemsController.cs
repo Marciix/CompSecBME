@@ -24,6 +24,7 @@ namespace CaffShop.Controllers
     public class CaffItemsController : Controller
     {
         private readonly IMapper _mapper;
+        private readonly IUserService _userService;
         private readonly ICaffItemService _caffItemService;
         private readonly ICommentService _commentService;
         private readonly IPurchaseService _purchaseService;
@@ -32,6 +33,7 @@ namespace CaffShop.Controllers
 
         public CaffItemsController(
             IMapper mapper,
+            IUserService userService,
             ICaffItemService caffItemService,
             ICommentService commentService,
             IPurchaseService purchaseService,
@@ -40,6 +42,7 @@ namespace CaffShop.Controllers
         )
         {
             _mapper = mapper;
+            _userService = userService;
             _caffItemService = caffItemService;
             _commentService = commentService;
             _purchaseService = purchaseService;
@@ -56,6 +59,7 @@ namespace CaffShop.Controllers
         }
 
         [HttpPost("upload"), RequestSizeLimit(UploadOptions.UploadSizeLimit)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<IdResult>> UploadCaffFile()
         {
             if (Request.Form.Files.Count != 1)
@@ -86,6 +90,7 @@ namespace CaffShop.Controllers
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<CaffItemPublic>> GetCaffItem(long id, bool withOwner = false)
         {
             var item = await _caffItemService.GetCaffItem(id, withOwner);
@@ -97,6 +102,8 @@ namespace CaffShop.Controllers
         }
 
         [HttpPost("{id}/buy")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<ActionResult> BuyCaffItem(long id)
         {
             var userId = UserHelper.GetAuthenticatedUserId(User);
@@ -120,7 +127,9 @@ namespace CaffShop.Controllers
         }
 
         [HttpGet("{id}/download")]
-        public async Task<ActionResult> DownloadCaffFile(long id)
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<FileStreamResult>> DownloadCaffFile(long id)
         {
             var item = await _caffItemService.GetCaffItem(id);
 
@@ -143,7 +152,8 @@ namespace CaffShop.Controllers
         }
 
         [HttpGet("{id}/preview.jpg")]
-        public async Task<ActionResult> PreviewCaffFile(long id)
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<FileStreamResult>> PreviewCaffFile(long id)
         {
             var item = await _caffItemService.GetCaffItem(id);
 
@@ -173,7 +183,9 @@ namespace CaffShop.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteCaffItem(long id)
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<OkResult>> DeleteCaffItem(long id)
         {
             var item = await _caffItemService.GetCaffItem(id);
 
@@ -181,7 +193,7 @@ namespace CaffShop.Controllers
                 return NotFound("CAFF Item not found");
 
             var userId = UserHelper.GetAuthenticatedUserId(User);
-            var isAdmin = UserHelper.IsAuthenticatedUserAdmin(User);
+            var isAdmin = await _userService.IsAuthenticatedUserAdmin(User);
 
             if (item.OwnerId != userId && false == isAdmin)
                 return StatusCode(StatusCodes.Status403Forbidden, "You are not authorized to delete this item!");
@@ -201,6 +213,7 @@ namespace CaffShop.Controllers
         }
 
         [HttpGet("{id}/comments")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<CommentPublic>>> GetCommentsForCaffItem(long id,
             bool withAuthors = false)
         {
@@ -213,6 +226,7 @@ namespace CaffShop.Controllers
 
 
         [HttpPost("{id}/comments")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IdResult>> CommentOnCaffItem(long id,
             [FromBody] CommentCreationModel commentModel)
         {

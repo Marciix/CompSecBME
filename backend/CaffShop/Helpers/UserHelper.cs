@@ -25,12 +25,8 @@ namespace CaffShop.Helpers
         
         public static long GetAuthenticatedUserId(ClaimsPrincipal user)
         {
-            return Convert.ToInt32(user.FindFirstValue(ClaimTypes.NameIdentifier));
+            return Convert.ToInt64(user.FindFirstValue(ClaimTypes.NameIdentifier));
         }
         
-        public static bool IsAuthenticatedUserAdmin(ClaimsPrincipal user)
-        {
-            return user.FindFirstValue(ClaimTypes.Role) == RoleAdmin;
-        }
     }
 }

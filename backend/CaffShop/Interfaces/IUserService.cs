@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using CaffShop.Entities;
 
@@ -12,5 +13,7 @@ namespace CaffShop.Interfaces
         Task<User> CreateUser(User user, string password);
         Task<User> UpdateUser(User user);
         Task DeleteUser(User user);
+        Task<bool> IsUserAdmin(long userId);
+        Task<bool> IsAuthenticatedUserAdmin(ClaimsPrincipal user);
     }
 }

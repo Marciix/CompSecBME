@@ -1,6 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using AutoMapper;
 using CaffShop.Helpers;
 using CaffShop.Interfaces;
+using CaffShop.Models;
 using CaffShop.Models.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -13,16 +16,32 @@ namespace CaffShop.Controllers
     public class UsersController : Controller
     {
         private readonly IUserService _userService;
+        private readonly IMapper _mapper;
 
-        public UsersController(IUserService userService)
+        public UsersController(IUserService userService, IMapper mapper)
         {
             _userService = userService;
+            _mapper = mapper;
+        }
+
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<ActionResult<IEnumerable<UserPublic>>> ListUsers()
+        {
+            if (false == await _userService.IsAuthenticatedUserAdmin(User))
+                return StatusCode(StatusCodes.Status403Forbidden, "You are not allowed to view users");
+
+            var users = await _userService.GetAllUsers();
+
+            return Ok(_mapper.Map<UserPublic[]>(users));
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult> DeleteUser(long id)
         {
-            if (CheckIfUserAllowedToModifyUser(id))
+            if (await IsUserNotAllowedToModifyUser(id))
                 return StatusCode(StatusCodes.Status403Forbidden, "You are not allowed to delete this user!");
 
             var user = await _userService.GetUserById(id);
@@ -35,9 +54,11 @@ namespace CaffShop.Controllers
         }
 
         [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult> ModifyUserData(long id, [FromBody] UserModifyModel model)
         {
-            if (CheckIfUserAllowedToModifyUser(id))
+            if (await IsUserNotAllowedToModifyUser(id))
                 return StatusCode(StatusCodes.Status403Forbidden, "You are not allowed to delete this user!");
 
             var user = await _userService.GetUserById(id);
@@ -56,10 +77,15 @@ namespace CaffShop.Controllers
             return Ok();
         }
 
-        private bool CheckIfUserAllowedToModifyUser(long userIdToModify)
+        private async Task<bool> IsUserNotAllowedToModifyUser(long userIdToModify)
+        {
+            return false == await CheckIfUserAllowedToModifyUser(userIdToModify);
+        }
+
+        private async Task<bool> CheckIfUserAllowedToModifyUser(long userIdToModify)
         {
             var userId = UserHelper.GetAuthenticatedUserId(User);
-            var isAdmin = UserHelper.IsAuthenticatedUserAdmin(User);
+            var isAdmin = await _userService.IsAuthenticatedUserAdmin(User);
             return isAdmin || userIdToModify == userId;
         }
     }
