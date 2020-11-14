@@ -21,4 +21,7 @@
     <string name="owner">Owner</string>
     <string name="Webshop">Webshop</string>
     <string name="comm">Comments:</string>
+    <string name="tags">Tags</string>
+    <string name="choose_file">Choose file</string>
+    <string name="upload_file">Upload file</string>
 </resources>

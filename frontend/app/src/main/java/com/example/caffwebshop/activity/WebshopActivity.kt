@@ -7,13 +7,16 @@ import android.support.v7.widget.GridLayoutManager
 import android.widget.Toast
 import com.example.caffwebshop.R
 import com.example.caffwebshop.adapter.ImagesAdapter
+import com.example.caffwebshop.fragment.CommentDialogFragment
+import com.example.caffwebshop.fragment.SearchDialogFragment
 import com.example.caffwebshop.model.CaffItemPublic
 import com.example.caffwebshop.network.CAFFInteractor
 
 import kotlinx.android.synthetic.main.activity_webshop.*
 import java.lang.Exception
 
-class WebshopActivity : AppCompatActivity() {
+class WebshopActivity : AppCompatActivity(), SearchDialogFragment.SearchListener {
+
 
     private var adapter: ImagesAdapter? = null
     private lateinit var token : String
@@ -37,6 +40,11 @@ class WebshopActivity : AppCompatActivity() {
             intent.putExtra("token", token)
             intent.putExtra("role", role)
             startActivity(intent)
+        }
+
+        fab_search.setOnClickListener{
+            val searchDialogFragment = SearchDialogFragment()
+            searchDialogFragment.show(supportFragmentManager, "TAG")
         }
     }
 
@@ -65,6 +73,31 @@ class WebshopActivity : AppCompatActivity() {
         Toast.makeText(applicationContext,"Unable to load images!", Toast.LENGTH_LONG).show()
         e.printStackTrace()
     }
+
+    override fun search(searchParam: String) {
+        if(searchParam==""){
+            loadImages()
+        }
+        else caffInteractor.getCaffItemsSearch(token= token, param= searchParam, onSuccess = this::onSearchSuccess, onError = this::onSearchError)
+    }
+
+    private fun onSearchSuccess(list :List<CaffItemPublic>?){
+        if(list==null){
+            onLoadError(Exception("List is null!"))
+        }
+        else{
+            listOfCaffs=list as MutableList<CaffItemPublic>
+            adapter = ImagesAdapter(applicationContext, listOfCaffs, token, role)
+            rvImages.adapter = adapter
+            srlImages.isRefreshing = false
+        }
+
+    }
+    private fun onSearchError(e:Throwable){
+        Toast.makeText(applicationContext,"Unable to search this tag!", Toast.LENGTH_LONG).show()
+        e.printStackTrace()
+    }
+
 
 
 

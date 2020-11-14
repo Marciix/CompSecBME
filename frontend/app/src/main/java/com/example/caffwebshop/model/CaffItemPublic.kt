@@ -5,10 +5,10 @@ import com.google.gson.annotations.SerializedName
 data class CaffItemPublic (
     @SerializedName("id")
     val id: Int,
-    @SerializedName("name")
-    val name: String,
-    @SerializedName("description")
-    val description: String,
+    @SerializedName("title")
+    val title: String,
+    @SerializedName("tags")
+    val tags: List<String>,
     @SerializedName("ownerId")
     val ownerId: Int,
     @SerializedName("uploadedAt")

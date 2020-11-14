@@ -4,13 +4,13 @@ apply plugin: 'kotlin-android'
 
 apply plugin: 'kotlin-android-extensions'
 
-//apply plugin: 'com.livinglifetechway.quickpermissions_plugin'
+apply plugin: 'com.livinglifetechway.quickpermissions_plugin'
 
 android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.example.caffwebshop"
-        minSdkVersion 15
+        minSdkVersion 16
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"

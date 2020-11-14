@@ -99,7 +99,6 @@ class CommentsActivity : AppCompatActivity(),CommentDialogFragment.CommentCreati
             .into(iv_preview)
 
 
-        //withauthors added
         caffInteractor.getCaffItemsByIDComment(token = token, param = id, withAuthors = true, onSuccess = this::onLoadCommentsSuccess, onError = this::onLoadCommentsError)
 
 
@@ -121,7 +120,9 @@ class CommentsActivity : AppCompatActivity(),CommentDialogFragment.CommentCreati
 
     private fun onBuyError(e: Throwable){
         e.printStackTrace()
-        Toast.makeText(applicationContext,"Unsuccesful purchase!", Toast.LENGTH_LONG).show()
+        var msg= "Unsuccessful purchase!"
+        if(e.message.equals("409")) msg="User already purchased this item."
+        Toast.makeText(applicationContext,msg , Toast.LENGTH_LONG).show()
     }
 
     private fun onSaveSuccess(res: ResponseBody?){
@@ -184,7 +185,9 @@ class CommentsActivity : AppCompatActivity(),CommentDialogFragment.CommentCreati
     private fun onLoadCommentsSuccess(list: List<CommentPublic>?){
         if(list==null) onLoadCommentsError(Exception("Error: loading comments!"))
        else{
-            adapter = CommentsAdapter(applicationContext, list as MutableList<CommentPublic>, token)
+            val l= list as MutableList<CommentPublic>
+            l.reverse()
+            adapter = CommentsAdapter(applicationContext, l, token)
             rv_comments.adapter = adapter
         }
     }

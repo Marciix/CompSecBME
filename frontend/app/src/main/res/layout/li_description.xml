@@ -11,7 +11,7 @@
                 android:textStyle="bold"
         android:paddingBottom="30dp"/>
         <TextView
-                android:text="@string/description"
+                android:text="@string/tags"
                 android:paddingTop="10dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

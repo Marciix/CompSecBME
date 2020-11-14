@@ -2,20 +2,34 @@ package com.example.caffwebshop.network
 
 import android.os.Handler
 import android.util.Log
+import android.widget.Toast
 import com.example.caffwebshop.model.*
+import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import javax.xml.datatype.DatatypeConstants.SECONDS
+import okhttp3.OkHttpClient
+import java.util.concurrent.TimeUnit
+
 
 class CAFFInteractor {
     private val caffApi: CAFFApi
 
     init {
+        val okHttpClient = OkHttpClient.Builder()
+            .connectTimeout(1, TimeUnit.MINUTES)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(15, TimeUnit.SECONDS)
+            .build()
+
         val retrofit= Retrofit.Builder()
             .baseUrl(CAFFApi.ENDPOINT_URL)
             .addConverterFactory(GsonConverterFactory.create())
+            .client(okHttpClient)
             .build()
+
         this.caffApi=retrofit.create(CAFFApi::class.java)
     }
 
@@ -28,10 +42,13 @@ class CAFFInteractor {
         Thread {
             try {
                 Log.i("callrequest", call.request().toString())
+
                 val c=call.execute()
+
                  Log.i("statuscode" ,c.code().toString())
                 if(c.code()!=200){
-                    throw Exception("Status code is not 200")
+                    Log.d("message", c.message())
+                    throw Exception(c.code().toString())
                 }
                 val response =c.body()
                 handler.post {
@@ -86,8 +103,11 @@ class CAFFInteractor {
 
     }
 
-    fun uploadCaffItem(token: String, param: CaffItemCreation, onSucces: (IdResult?)->Unit, onError: (Throwable) -> Unit){
-        val uploadRequest=caffApi.uploadCaffItem(token, param)
+    fun uploadCaffItem(token: String, file:MultipartBody.Part, onSucces: (IdResult?)->Unit, onError: (Throwable) -> Unit){
+        val uploadRequest=caffApi.uploadCaffItem(token, file)
+        Log.i("body", uploadRequest.request().body().toString())
+        Log.i("headers" ,uploadRequest.request().headers().toString())
+
         runCallOnBackgroundThread(uploadRequest,onSucces,onError)
     }
 

@@ -26,6 +26,30 @@ class LoginActivity : AppCompatActivity() {
             val intent = Intent(applicationContext, SignupActivity::class.java)
             startActivityForResult(intent, REQUEST_SIGNUP)
         }
+
+        btnAdminLogin.setOnClickListener {
+            val user=UserAuthenticateModel(input_username.text.toString(),input_password.text.toString())
+            authInteractor.login(user, this::onAdminLoginSuccess,this::onAdminLoginError)
+        }
+    }
+
+    fun onAdminLoginSuccess(res: UserLoginResponse){
+        if(res.role=="admin"){
+            val token ="Bearer "+res.jwtToken
+            val role= res.role
+            val intent = Intent(applicationContext, AdminActivity::class.java)
+            intent.putExtra("token", token)
+            intent.putExtra("role", role)
+            startActivity(intent)
+        }
+        else{
+            onAdminLoginError(Exception("Not admin"))
+        }
+    }
+
+    fun onAdminLoginError(e:Throwable){
+        e.printStackTrace()
+        Toast.makeText(applicationContext, "Not an admin user!", Toast.LENGTH_LONG).show()
     }
 
     fun login() {
@@ -72,26 +96,6 @@ class LoginActivity : AppCompatActivity() {
         e.printStackTrace()
     }
 
-
-
-    /*fun validate(): Boolean {
-        var valid = true
-        val email = input_username!!.text.toString()
-        val password = input_password!!.text.toString()
-        if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            input_username!!.error = "enter a valid email address"
-            valid = false
-        } else {
-            input_username!!.error = null
-        }
-        if (password.isEmpty() || password.length < 4 || password.length > 10) {
-            input_password!!.error = "between 4 and 10 alphanumeric characters"
-            valid = false
-        } else {
-            input_password!!.error = null
-        }
-        return valid
-    }*/
 
     companion object {
         private const val TAG = "LoginActivity"

@@ -7,6 +7,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.support.v4.app.DialogFragment
 import android.support.v7.app.AlertDialog
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.TextView
@@ -43,11 +44,11 @@ class DescriptionDialogFragment: DialogFragment() {
         val act =this.activity
         a=this.activity as Activity
 
-        if(act is DescriptionDialogFragment.DescriptionDataListener){
+        if(act is DescriptionDataListener){
             listener=act
         }
         else{
-            throw RuntimeException("Activity must implement SearchListener")
+            throw RuntimeException("Activity must implement DescriptionDataListener")
         }
 
     }
@@ -89,9 +90,15 @@ class DescriptionDialogFragment: DialogFragment() {
     private fun onLoadDescriptionSuccess(caffItem: CaffItemPublic?) {
         if(caffItem!=null) {
 
-            caffItem.name.let { tvName.text = caffItem.name }
+            caffItem.title.let { tvName.text = caffItem.title }
             caffItem.uploadedAt.let { tvUploadedAt.text = caffItem.uploadedAt }
-            caffItem.description.let { tvDescription.text = caffItem.description }
+            var desc=""
+            for(s in caffItem.tags) {
+                desc+= "$s, "
+
+            }
+            if(desc.length>2) desc.dropLast(2)
+            tvDescription.text=desc
             caffItem.owner.userName.let { tvOwner.text = caffItem.owner.userName }
 
 

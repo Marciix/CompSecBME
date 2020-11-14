@@ -11,17 +11,16 @@ import android.view.View
 import android.widget.EditText
 import com.example.caffwebshop.R
 
-class CommentDialogFragment: DialogFragment(){
+class SearchDialogFragment: DialogFragment() {
 
-    private lateinit var listener:CommentCreationListener
-    private lateinit var a:Activity
-    private lateinit var etComment: EditText
+    private lateinit var listener: SearchListener
+    private lateinit var a: Activity
+    private lateinit var etSearch: EditText
     private lateinit var viewAct: View
 
-    interface CommentCreationListener{
-        fun onCommentCreated(comment: String)
+    interface SearchListener{
+        fun search(searchParam: String)
     }
-
 
     override fun onStart() {
         super.onStart()
@@ -35,11 +34,11 @@ class CommentDialogFragment: DialogFragment(){
         val act=this.activity
         a=this.activity as Activity
 
-        if(act is CommentCreationListener){
+        if(act is SearchListener){
             listener=act
         }
         else{
-            throw RuntimeException("Activity must implement CommentCreationListener")
+            throw RuntimeException("Activity must implement SearchListener")
         }
 
     }
@@ -49,9 +48,9 @@ class CommentDialogFragment: DialogFragment(){
         val builder = AlertDialog.Builder(activity!!)
 
         builder.setView(getContentView())
-        builder.setTitle("Add new comment")
-        builder.setPositiveButton("Post") { _, _ ->
-          listener.onCommentCreated(etComment.text.toString())
+        builder.setTitle("Search tag")
+        builder.setPositiveButton("Ok") { _, _ ->
+            listener.search(etSearch.text.toString())
         }
         builder.setNegativeButton("Cancel", null)
         return builder.create()
@@ -59,8 +58,8 @@ class CommentDialogFragment: DialogFragment(){
     }
 
     private fun getContentView(): View {
-        viewAct = LayoutInflater.from(context).inflate(R.layout.comment_fragment, null)
-        etComment=viewAct.findViewById(R.id.et_newcomment)
+        viewAct = LayoutInflater.from(context).inflate(R.layout.search_fragment, null)
+        etSearch=viewAct.findViewById(R.id.et_search)
         return viewAct
     }
 }

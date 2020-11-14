@@ -1,6 +1,7 @@
 package com.example.caffwebshop.network
 
 import com.example.caffwebshop.model.*
+import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.*
@@ -29,8 +30,9 @@ interface CAFFApi {
     @GET("caffitems/{id}/comments")
     fun getCaffItemsByIDComment(@Header("Authorization") token:String, @Path("id") id: Int, @Query("withAuthors") withOwner: Boolean): Call<List<CommentPublic>>
 
+    @Multipart
     @POST("caffitems/upload")
-    fun uploadCaffItem(@Header("Authorization") token:String, @Body param: CaffItemCreation): Call<IdResult>
+    fun uploadCaffItem(@Header("Authorization") token:String, @Part file: MultipartBody.Part): Call<IdResult>
 
     @POST("caffitems/{id}/buy")
     fun buyCaffItem(@Header("Authorization") token:String,@Path("id") id: Int):Call<Void>
