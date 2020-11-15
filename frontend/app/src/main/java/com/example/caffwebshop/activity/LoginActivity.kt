@@ -33,11 +33,11 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    fun onAdminLoginSuccess(res: UserLoginResponse){
+    private fun onAdminLoginSuccess(res: UserLoginResponse){
         if(res.role=="admin"){
             val token ="Bearer "+res.jwtToken
             val role= res.role
-            val intent = Intent(applicationContext, AdminActivity::class.java)
+            val intent = Intent(applicationContext, UserListActivity::class.java)
             intent.putExtra("token", token)
             intent.putExtra("role", role)
             startActivity(intent)
@@ -47,12 +47,12 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    fun onAdminLoginError(e:Throwable){
+    private fun onAdminLoginError(e:Throwable){
         e.printStackTrace()
         Toast.makeText(applicationContext, "Not an admin user!", Toast.LENGTH_LONG).show()
     }
 
-    fun login() {
+    private fun login() {
         Log.d(TAG, "Login")
 
         btn_login!!.isEnabled = true

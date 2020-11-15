@@ -34,6 +34,7 @@ class AdminActivity : AppCompatActivity() {
 
     private fun onDeleteSuccess(v:Void?){
         Toast.makeText(applicationContext, "User successfully deleted!", Toast.LENGTH_LONG).show()
+        finish()
     }
 
     private fun onDeleteError(e:Throwable){
@@ -44,6 +45,7 @@ class AdminActivity : AppCompatActivity() {
 
     private fun onModifySuccess(v:Void?){
         Toast.makeText(applicationContext, "User successfully modified!", Toast.LENGTH_LONG).show()
+        finish()
     }
 
     private fun onModifyError(e:Throwable){
