@@ -129,7 +129,7 @@ namespace CaffShop.Controllers
         [HttpGet("{id}/download")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<FileStreamResult>> DownloadCaffFile(long id)
+        public async Task<ActionResult> DownloadCaffFile(long id)
         {
             var item = await _caffItemService.GetCaffItem(id);
 
@@ -153,7 +153,7 @@ namespace CaffShop.Controllers
 
         [HttpGet("{id}/preview.jpg")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<FileStreamResult>> PreviewCaffFile(long id)
+        public async Task<ActionResult> PreviewCaffFile(long id)
         {
             var item = await _caffItemService.GetCaffItem(id);
 
