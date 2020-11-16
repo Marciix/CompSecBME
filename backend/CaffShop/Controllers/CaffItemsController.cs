@@ -185,7 +185,7 @@ namespace CaffShop.Controllers
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<OkResult>> DeleteCaffItem(long id)
+        public async Task<ActionResult> DeleteCaffItem(long id)
         {
             var item = await _caffItemService.GetCaffItem(id);
 
@@ -246,8 +246,7 @@ namespace CaffShop.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
-
-
+        
         private static FileStreamResult GetFileStreamResult(string fullPath)
         {
             new FileExtensionContentTypeProvider().TryGetContentType(fullPath, out var contentType);
