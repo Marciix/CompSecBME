@@ -55,7 +55,6 @@ class UserListActivity : AppCompatActivity() {
             adapter = UserAdapter(applicationContext, l, token)
             rv_users.adapter = adapter
         }
-
     }
 
     private fun onLoadError(e:Throwable){

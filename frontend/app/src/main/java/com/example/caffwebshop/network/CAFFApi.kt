@@ -2,6 +2,7 @@ package com.example.caffwebshop.network
 
 import com.example.caffwebshop.model.*
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.*
@@ -42,9 +43,6 @@ interface CAFFApi {
 
     @DELETE("caffitems/{id}")
     fun deleteCaffItemByID(@Header("Authorization") token:String, @Path("id") id: Int): Call<Void>
-
-
-
 
 
 
