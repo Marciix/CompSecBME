@@ -15,6 +15,7 @@ using System.Net.Http.Headers;
 using CaffShop.Entities;
 using CaffShop.Models.Exceptions;
 using CaffShop.Models.Options;
+using Ganss.XSS;
 using Microsoft.Extensions.Logging;
 
 namespace CaffShop.Controllers
@@ -195,6 +196,7 @@ namespace CaffShop.Controllers
             var userId = UserHelper.GetAuthenticatedUserId(User);
             var isAdmin = await _userService.IsAuthenticatedUserAdmin(User);
 
+            // Admins can delete all items. Users are allowed to delete only their own items.
             if (item.OwnerId != userId && false == isAdmin)
                 return StatusCode(StatusCodes.Status403Forbidden, "You are not authorized to delete this item!");
 
@@ -234,6 +236,9 @@ namespace CaffShop.Controllers
                 return NotFound("Caff item not found");
 
             var userId = UserHelper.GetAuthenticatedUserId(User);
+            // Use HtmlSanitizer https://github.com/mganss/HtmlSanitizer#tags-allowed-by-default
+            var sanitizer = new HtmlSanitizer();
+            commentModel.Content = sanitizer.Sanitize(commentModel.Content);
 
             try
             {
@@ -247,6 +252,7 @@ namespace CaffShop.Controllers
             }
         }
         
+        // Returns a filestream
         private static FileStreamResult GetFileStreamResult(string fullPath)
         {
             new FileExtensionContentTypeProvider().TryGetContentType(fullPath, out var contentType);
@@ -254,6 +260,7 @@ namespace CaffShop.Controllers
             return new FileStreamResult(stream, contentType ?? "application/octet-stream");
         }
 
+        // Returns a filestream result with Download Name which tells the browser: download the file 
         private static FileStreamResult DownloadFileStreamResult(string fullPath, string fileName)
         {
             var fileStream = GetFileStreamResult(fullPath);

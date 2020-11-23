@@ -28,6 +28,7 @@ namespace CaffShop.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<IEnumerable<UserPublic>>> ListUsers()
         {
+            // Only admin can access user list
             if (false == await _userService.IsAuthenticatedUserAdmin(User))
                 return StatusCode(StatusCodes.Status403Forbidden, "You are not allowed to view users");
 
@@ -41,6 +42,7 @@ namespace CaffShop.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult> DeleteUser(long id)
         {
+            // Check if user is able to delete a user (must be admin) or delete itself
             if (await IsUserNotAllowedToModifyUser(id))
                 return StatusCode(StatusCodes.Status403Forbidden, "You are not allowed to delete this user!");
 
@@ -58,6 +60,7 @@ namespace CaffShop.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult> ModifyUserData(long id, [FromBody] UserModifyModel model)
         {
+            // Check if user is able to modify a user (must be admin) or delete itself
             if (await IsUserNotAllowedToModifyUser(id))
                 return StatusCode(StatusCodes.Status403Forbidden, "You are not allowed to delete this user!");
 
@@ -77,11 +80,13 @@ namespace CaffShop.Controllers
             return Ok();
         }
 
+        // Function that negates CheckIfUserAllowedToModifyUser to avoid ! in if conditions
         private async Task<bool> IsUserNotAllowedToModifyUser(long userIdToModify)
         {
             return false == await CheckIfUserAllowedToModifyUser(userIdToModify);
         }
 
+        // Returns true if the authenticated user is admin or user wants modify itself
         private async Task<bool> CheckIfUserAllowedToModifyUser(long userIdToModify)
         {
             var userId = UserHelper.GetAuthenticatedUserId(User);

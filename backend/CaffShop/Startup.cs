@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 using AutoMapper;
+using CaffShop.Controllers;
 using CaffShop.Helpers;
 using CaffShop.Helpers.Wrappers;
 using CaffShop.Interfaces;
@@ -172,10 +173,12 @@ namespace CaffShop
                     jwtBearerOptions.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuerSigningKey = true,
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
                         IssuerSigningKey = new SymmetricSecurityKey(key),
-                        ValidateIssuer = false,
-                        ValidateAudience = false,
-                        ValidateLifetime = true
+                        ValidIssuer = AuthController.TokenIssuer,
+                        ValidAudience = AuthController.TokenAudience
                     };
                 });
         }

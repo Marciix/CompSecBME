@@ -18,6 +18,10 @@ namespace CaffShop.Controllers
     [Route("[controller]")]
     public class AuthController : Controller
     {
+        
+        public const string TokenAudience = "CaffShopBackend";
+        public const string TokenIssuer = "CaffShopBackendIssuer";
+        
         private readonly IUserService _userService;
         private readonly IAuthenticationService _authenticationService;
         private readonly byte[] _jwtSecret;
@@ -38,22 +42,27 @@ namespace CaffShop.Controllers
         {
             var user = await _authenticationService.Authenticate(model.Username, model.Password);
 
-            if (user == null)
+            if (null == user)
                 return BadRequest(new {message = "Username or password is incorrect"});
-
-            var role = user.IsAdmin ? UserHelper.RoleAdmin : UserHelper.RoleUser;
-
+            
+            // Create a new JWT token
             var tokenHandler = new JwtSecurityTokenHandler();
             var tokenDescriptor = new SecurityTokenDescriptor
             {
+                // Put user's data into claims: userId and userName
                 Subject = new ClaimsIdentity(new[]
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     new Claim(ClaimTypes.Name, user.UserName)
                 }),
+                
+                // Set 2 hours as JWT lifetime
                 Expires = DateTime.UtcNow.AddHours(2),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(_jwtSecret),
-                    SecurityAlgorithms.HmacSha256Signature)
+                    SecurityAlgorithms.HmacSha256Signature),
+                Audience = TokenAudience,
+                Issuer = TokenIssuer,
+                IssuedAt = DateTime.Now,
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             var tokenString = tokenHandler.WriteToken(token);
@@ -62,7 +71,7 @@ namespace CaffShop.Controllers
             return Ok(new UserLoginResponse
             {
                 JwtToken = tokenString,
-                Role = role
+                Role = user.IsAdmin ? UserHelper.RoleAdmin : UserHelper.RoleUser
             });
         }
 
@@ -71,7 +80,7 @@ namespace CaffShop.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<IdResult>> Register([FromBody] UserRegistrationModel model)
         {
-            // map model to entity
+            // map DTO to model
             var user = _mapper.Map<User>(model);
 
             try

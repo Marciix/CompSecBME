@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using CaffShop.Entities;
 using CaffShop.Helpers;
@@ -8,6 +8,7 @@ using CaffShop.Interfaces;
 using CaffShop.Models.CaffItem;
 using CaffShop.Models.Exceptions;
 using CaffShop.Models.Options;
+using Ganss.XSS;
 using ImageMagick;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -58,6 +59,7 @@ namespace CaffShop.Services
                 ParseCaffFile();
                 ConvertPpmToJpg();
                 var caffMeta = ReadCaffMetaJson();
+                caffMeta = SanitizeCaffItemUploadMeta(caffMeta);
                 var caffItem = CreateCaffItem(originalName, userId, caffMeta);
                 return await _caffItemService.SaveCaff(caffItem);
             }
@@ -153,6 +155,14 @@ namespace CaffShop.Services
             File.Delete(_jsonFilePath);
 
             return item;
+        }
+
+        private CaffItemUploadMeta SanitizeCaffItemUploadMeta(CaffItemUploadMeta meta)
+        {
+            var sanitizer = new HtmlSanitizer();
+            meta.Title = sanitizer.Sanitize(meta.Title);
+            meta.Tags = meta.Tags.Select(tag => sanitizer.Sanitize(tag)).ToList();
+            return meta;
         }
 
         private static string RandomFileNameWithTimestamp()
