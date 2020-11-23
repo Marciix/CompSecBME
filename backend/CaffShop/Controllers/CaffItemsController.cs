@@ -63,20 +63,25 @@ namespace CaffShop.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<IdResult>> UploadCaffFile()
         {
+            var userId = UserHelper.GetAuthenticatedUserId(User);
+
             if (Request.Form.Files.Count != 1)
                 return BadRequest("Submitted form data must contain exactly one file");
-            var file = Request.Form.Files[0];
-
-            var originalName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
-
-            if (Path.GetExtension(originalName).ToLower() != ".caff")
-                return BadRequest("The file must be a caff file");
-
-            var userId = UserHelper.GetAuthenticatedUserId(User);
 
             try
             {
+                var file = Request.Form.Files[0];
+
+                var originalName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
+
+                if (Path.GetExtension(originalName).ToLower() != ".caff")
+                {
+                    _logger.LogWarning($"User #{userId} tried to upload a non CAFF file.");
+                    return BadRequest("The file must be a caff file");
+                }
+
                 var caffItem = await _caffUploadService.UploadCaffFile(file, originalName, userId);
+                _logger.LogInformation($"User #{userId} created item #{caffItem.Id}");
                 return Ok(new IdResult {Id = caffItem.Id});
             }
             catch (CaffUploadException ex)
@@ -85,7 +90,7 @@ namespace CaffShop.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError("An error occured during CAFF upload", ex);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -118,11 +123,12 @@ namespace CaffShop.Controllers
             try
             {
                 await _purchaseService.PurchaseItem(id, userId);
+                _logger.LogInformation($"User #{userId} bought item #{id}");
                 return Ok();
             }
-            catch
+            catch (Exception ex)
             {
-                // TODO Log error
+                _logger.LogError("An error occured during buying an item", ex);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -145,9 +151,9 @@ namespace CaffShop.Controllers
             {
                 return DownloadFileStreamResult(item.CaffPath, item.OriginalName);
             }
-            catch
+            catch (Exception ex)
             {
-                // TODO Log error
+                _logger.LogError($"An error occured during downloading item #{id}", ex);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -165,9 +171,9 @@ namespace CaffShop.Controllers
             {
                 return GetFileStreamResult(item.PreviewPath);
             }
-            catch
+            catch (Exception ex)
             {
-                // TODO Log error
+                _logger.LogError($"An error occured during printing preview for item #{id}", ex);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -198,10 +204,14 @@ namespace CaffShop.Controllers
 
             // Admins can delete all items. Users are allowed to delete only their own items.
             if (item.OwnerId != userId && false == isAdmin)
+            {
+                _logger.LogWarning($"User #{userId} tried to delete item #{id}");
                 return StatusCode(StatusCodes.Status403Forbidden, "You are not authorized to delete this item!");
+            }
 
             await _caffItemService.DeleteCaffItem(item);
             DeleteCaffItemFromDisc(item);
+            _logger.LogInformation($"User #{userId} deleted item #{id}");
             return Ok();
         }
 
@@ -243,15 +253,16 @@ namespace CaffShop.Controllers
             try
             {
                 var comment = await _commentService.SaveComment(commentModel.Content, id, userId);
+                _logger.LogInformation($"User #{userId} commented on item #{id}");
                 return Ok(new IdResult {Id = comment.Id});
             }
-            catch
+            catch(Exception ex)
             {
-                // TODO Log error
+                _logger.LogError("An error occured during commenting", ex);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
-        
+
         // Returns a filestream
         private static FileStreamResult GetFileStreamResult(string fullPath)
         {

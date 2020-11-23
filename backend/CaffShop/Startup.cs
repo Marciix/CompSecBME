@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using AutoMapper;
 using CaffShop.Controllers;
 using CaffShop.Helpers;
@@ -180,6 +181,20 @@ namespace CaffShop
                         ValidIssuer = AuthController.TokenIssuer,
                         ValidAudience = AuthController.TokenAudience
                     };
+                    jwtBearerOptions.Events = new JwtBearerEvents
+                    {
+                        // Validate if user is able to login (in our case: exists in db)
+                        OnTokenValidated = context =>
+                        {
+                            var s = context.HttpContext.RequestServices.GetRequiredService<IAuthenticationService>();
+                            if (s.IsUserAbleToLogin(context.Principal.Identity.Name).Result == false)
+                            {
+                                context.Fail("Unauthorized");
+                            }
+                            return Task.CompletedTask;
+                        }
+                    };
+
                 });
         }
 

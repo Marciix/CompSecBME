@@ -11,6 +11,7 @@ using CaffShop.Models;
 using CaffShop.Models.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace CaffShop.Controllers
@@ -26,13 +27,15 @@ namespace CaffShop.Controllers
         private readonly IAuthenticationService _authenticationService;
         private readonly byte[] _jwtSecret;
         private readonly IMapper _mapper;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IUserService userService, IAuthenticationService authenticationService, IMapper mapper)
+        public AuthController(IUserService userService, IAuthenticationService authenticationService, IMapper mapper, ILogger<AuthController> logger)
         {
             _userService = userService;
             _authenticationService = authenticationService;
             _mapper = mapper;
             _jwtSecret = Encoding.ASCII.GetBytes(HelperFunctions.GetEnvironmentValueOrException("JWT_SECRET"));
+            _logger = logger;
         }
 
 
@@ -40,14 +43,69 @@ namespace CaffShop.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<UserLoginResponse>> Authenticate([FromBody] UserAuthenticateModel model)
         {
-            var user = await _authenticationService.Authenticate(model.Username, model.Password);
+            try
+            {
+                var user = await _authenticationService.Authenticate(model.Username, model.Password);
+                // Create a new JWT token
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var tokenDescriptor = CreateTokenDescriptor(user);
+                var token = tokenHandler.CreateToken(tokenDescriptor);
+                var tokenString = tokenHandler.WriteToken(token);
 
-            if (null == user)
+                _logger.LogInformation($"Successful login for user #{user.Id}");
+
+                // return basic user info and authentication token
+                return Ok(new UserLoginResponse
+                {
+                    JwtToken = tokenString,
+                    Role = user.IsAdmin ? UserHelper.RoleAdmin : UserHelper.RoleUser
+                });
+
+            }
+            catch (LoginFailedException)
+            {
                 return BadRequest(new {message = "Username or password is incorrect"});
-            
-            // Create a new JWT token
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var tokenDescriptor = new SecurityTokenDescriptor
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("An error occured during authentication", ex);
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+        
+        [HttpPost("register")]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<IdResult>> Register([FromBody] UserRegistrationModel model)
+        {
+            // map DTO to model
+            var user = _mapper.Map<User>(model);
+
+            try
+            {
+                // create user
+                user = await _userService.CreateUser(user, model.Password);
+                _logger.LogInformation($"User #{user.Id} created");
+                return Ok(new IdResult{ Id = user.Id});
+            }
+            catch (UserAlreadyExistsException ex)
+            {
+                return Conflict(new {message = ex.Message});
+            }
+            catch (PasswordRequiredException ex)
+            {
+                return BadRequest(new {message = ex.Message});
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("An error occured during registration", ex);
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+        
+        private SecurityTokenDescriptor CreateTokenDescriptor(User user)
+        {
+            return new SecurityTokenDescriptor
             {
                 // Put user's data into claims: userId and userName
                 Subject = new ClaimsIdentity(new[]
@@ -64,43 +122,7 @@ namespace CaffShop.Controllers
                 Issuer = TokenIssuer,
                 IssuedAt = DateTime.Now,
             };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            var tokenString = tokenHandler.WriteToken(token);
-
-            // return basic user info and authentication token
-            return Ok(new UserLoginResponse
-            {
-                JwtToken = tokenString,
-                Role = user.IsAdmin ? UserHelper.RoleAdmin : UserHelper.RoleUser
-            });
         }
 
-        [HttpPost("register")]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<IdResult>> Register([FromBody] UserRegistrationModel model)
-        {
-            // map DTO to model
-            var user = _mapper.Map<User>(model);
-
-            try
-            {
-                // create user
-                user = await _userService.CreateUser(user, model.Password);
-                return Ok(new IdResult{ Id = user.Id});
-            }
-            catch (UserAlreadyExistsException ex)
-            {
-                return Conflict(new {message = ex.Message});
-            }
-            catch (PasswordRequiredException ex)
-            {
-                return BadRequest(new {message = ex.Message});
-            }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
-        }
     }
 }

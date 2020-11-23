@@ -65,30 +65,31 @@ namespace CaffShop.Services
             }
             catch (InvalidCaffFileException ex)
             {
+                _logger.LogWarning($"User #{userId} tried to upload an invalid CAFF file");
                 DeleteFiles();
                 throw new CaffUploadException(ex.Message);
             }
             catch (FileNotFoundException ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError("Failed to process CAFF file", ex);
                 DeleteFiles();
-                throw new CaffUploadException("Failed to properly process Caff file.");
+                throw new CaffUploadException("Failed to properly process CAFF file.");
             }
             catch (MagickException ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError("Failed to create preview for caff", ex);
                 DeleteFiles();
                 throw new CaffUploadException("Failed to create preview image.");
             }
             catch (JsonSerializationException ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError("Failed to parse CAFF metadata", ex);
                 DeleteFiles();
-                throw new CaffUploadException("Failed to parse Caff metadata.");
+                throw new CaffUploadException("Failed to parse CAFF metadata.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError("An error occured during CAFF processing", ex);
                 DeleteFiles();
                 throw new CaffUploadException("Error when uploading a Caff file.");
             }
@@ -157,7 +158,7 @@ namespace CaffShop.Services
             return item;
         }
 
-        private CaffItemUploadMeta SanitizeCaffItemUploadMeta(CaffItemUploadMeta meta)
+        private static CaffItemUploadMeta SanitizeCaffItemUploadMeta(CaffItemUploadMeta meta)
         {
             var sanitizer = new HtmlSanitizer();
             meta.Title = sanitizer.Sanitize(meta.Title);

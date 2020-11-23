@@ -15,5 +15,6 @@ namespace CaffShop.Interfaces
         Task DeleteUser(User user);
         Task<bool> IsUserAdmin(long userId);
         Task<bool> IsAuthenticatedUserAdmin(ClaimsPrincipal user);
+        Task<bool> IsUserExistsByUserNameOrMail(string userNameOrEmail);
     }
 }

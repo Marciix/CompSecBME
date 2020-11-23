@@ -11,6 +11,7 @@ namespace CaffShop.Helpers.Wrappers
         {
             var dir = Path.Combine(Directory.GetCurrentDirectory(), "Resources", "TestFiles");
 
+            // Delete uploaded file
             if (File.Exists(tempFilePath))
                 File.Delete(tempFilePath);
 

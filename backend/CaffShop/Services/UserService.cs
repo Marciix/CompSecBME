@@ -42,8 +42,8 @@ namespace CaffShop.Services
 
             if (await _context.Users.AnyAsync(x => x.UserName == user.UserName))
                 throw new UserAlreadyExistsException("Username \"" + user.UserName + "\" is already taken");
-            
-            if(await _context.Users.AnyAsync(u => u.Email == user.Email))
+
+            if (await _context.Users.AnyAsync(u => u.Email == user.Email))
                 throw new UserAlreadyExistsException("Email \"" + user.Email + "\" is already taken");
 
             UserHelper.CreatePasswordHash(password, out var passwordHash, out var passwordSalt);
@@ -79,6 +79,11 @@ namespace CaffShop.Services
         public async Task<bool> IsAuthenticatedUserAdmin(ClaimsPrincipal user)
         {
             return await IsUserAdmin(UserHelper.GetAuthenticatedUserId(user));
+        }
+
+        public async Task<bool> IsUserExistsByUserNameOrMail(string userNameOrEmail)
+        {
+            return await _context.Users.AnyAsync(u => u.UserName == userNameOrEmail || u.Email == userNameOrEmail);
         }
     }
 }
