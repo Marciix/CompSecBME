@@ -1,10 +1,11 @@
 CC = g++
+AFL_CC = afl-g++
 CFLAGS = -shared -fPIC
 WINFLAG = -DBUILD_DLL
 SOURCE = CaffParser.h CaffParser.cpp
 
 build-windows:
-	mkdir Release 
+	mkdir -p Release 
 	$(CC) $(WINFLAG) $(CFLAGS) $(SOURCE) -o Release\CaffParser.dll
 	 
 clean-windows:
@@ -19,7 +20,7 @@ clean-linux:
 
 build-test:
 	mkdir -p  Release 
-	$(CC) $(CFLAGS) $(SOURCE) -o Release/libcaff.so
+	$(AFL_CC) $(CFLAGS) $(SOURCE) -o Release/libcaff.so
 
 clean-test:
 	rm -f Release/libcaff.so
