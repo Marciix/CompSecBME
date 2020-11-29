@@ -26,24 +26,31 @@ namespace CaffShop.Services
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
                 return null;
 
-            var user = await _userService.GetUserByUserNameOrEmail(username);
+            try
+            {
+                var user = await _userService.GetUserByUserNameOrEmail(username);
 
-            // check if username exists
-            if (user == null)
+                // Validate password
+                if (VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
+                {
+                    return user;
+                }
+
+                _logger.LogWarning($"Failed login attempt for user: {user.UserName}");
+                throw new LoginInvalidPasswordException();
+            }
+            catch (UserNotExistsException)
             {
                 _logger.LogWarning($"Failed login attempt for unknown user: {username}");
-                throw new LoginFailedException("User does not exists.");
+                throw new LoginUserDoesNotExistException();
             }
-
-            // Validate password
-            if (false == VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
+            catch (ArgumentException ex)
             {
-                _logger.LogWarning($"Failed login attempt for user: {user.UserName}");
-                throw new LoginFailedException("Incorrect password.");
+                _logger.LogError("An argument has invalid value", ex);
+                throw new ArgumentException("Invalid password argument.");
             }
-
-            return user;
         }
+
 
         public async Task<bool> IsUserAbleToLogin(string username)
         {
@@ -56,12 +63,11 @@ namespace CaffShop.Services
         // private helper methods
         private static bool VerifyPasswordHash(string password, byte[] storedHash, byte[] storedSalt)
         {
-            if (password == null) throw new ArgumentNullException(nameof(password));
             if (string.IsNullOrWhiteSpace(password))
                 throw new ArgumentException("Value cannot be empty or whitespace only string.", nameof(password));
-            if (storedHash.Length != 64)
+            if (storedHash == null || storedHash.Length != 64)
                 throw new ArgumentException("Invalid length of password hash (64 bytes expected).", nameof(storedHash));
-            if (storedSalt.Length != 128)
+            if (storedSalt == null || storedSalt.Length != 128)
                 throw new ArgumentException("Invalid length of password salt (128 bytes expected).",
                     nameof(storedHash));
 

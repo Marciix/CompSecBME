@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using CaffShop.Entities;
 
@@ -11,10 +10,9 @@ namespace CaffShop.Interfaces
         Task<User> GetUserByUserNameOrEmail(string userNameOrEmail);
         Task<IEnumerable<User>> GetAllUsers();
         Task<User> CreateUser(User user, string password);
-        Task<User> UpdateUser(User user);
-        Task DeleteUser(User user);
+        Task<User> UpdateUser(long userId, string firstName, string lastName, long authUserId);
+        Task DeleteUser(long userIdToDelete, long authUserId);
         Task<bool> IsUserAdmin(long userId);
-        Task<bool> IsAuthenticatedUserAdmin(ClaimsPrincipal user);
         Task<bool> IsUserExistsByUserNameOrMail(string userNameOrEmail);
     }
 }

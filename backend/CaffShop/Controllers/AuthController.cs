@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using CaffShop.Entities;
@@ -9,9 +8,12 @@ using CaffShop.Helpers;
 using CaffShop.Interfaces;
 using CaffShop.Models;
 using CaffShop.Models.Exceptions;
+using CaffShop.Models.Options;
+using CaffShop.Models.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace CaffShop.Controllers
@@ -20,27 +22,31 @@ namespace CaffShop.Controllers
     public class AuthController : Controller
     {
         
-        public const string TokenAudience = "CaffShopBackend";
-        public const string TokenIssuer = "CaffShopBackendIssuer";
-        
         private readonly IUserService _userService;
         private readonly IAuthenticationService _authenticationService;
-        private readonly byte[] _jwtSecret;
         private readonly IMapper _mapper;
         private readonly ILogger<AuthController> _logger;
+        private readonly JwtOptions _jwtOptions;
 
-        public AuthController(IUserService userService, IAuthenticationService authenticationService, IMapper mapper, ILogger<AuthController> logger)
+        public AuthController(
+            IUserService userService,
+            IAuthenticationService authenticationService,
+            IMapper mapper,
+            ILogger<AuthController> logger,
+            IOptions<JwtOptions> jwtOptions)
         {
             _userService = userService;
             _authenticationService = authenticationService;
             _mapper = mapper;
-            _jwtSecret = Encoding.ASCII.GetBytes(HelperFunctions.GetEnvironmentValueOrException("JWT_SECRET"));
             _logger = logger;
+            _jwtOptions = jwtOptions.Value;
         }
 
 
-        [HttpPost("login")]        
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [HttpPost("login")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<UserLoginResponse>> Authenticate([FromBody] UserAuthenticateModel model)
         {
             try
@@ -60,9 +66,12 @@ namespace CaffShop.Controllers
                     JwtToken = tokenString,
                     Role = user.IsAdmin ? UserHelper.RoleAdmin : UserHelper.RoleUser
                 });
-
             }
-            catch (LoginFailedException)
+            catch (LoginInvalidPasswordException)
+            {
+                return Unauthorized(new {message = "Username or password is incorrect"});
+            }
+            catch (LoginUserDoesNotExistException)
             {
                 return BadRequest(new {message = "Username or password is incorrect"});
             }
@@ -74,8 +83,10 @@ namespace CaffShop.Controllers
         }
         
         [HttpPost("register")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<IdResult>> Register([FromBody] UserRegistrationModel model)
         {
             // map DTO to model
@@ -86,11 +97,19 @@ namespace CaffShop.Controllers
                 // create user
                 user = await _userService.CreateUser(user, model.Password);
                 _logger.LogInformation($"User #{user.Id} created");
-                return Ok(new IdResult{ Id = user.Id});
+                return Ok(new IdResult {Id = user.Id});
             }
             catch (UserAlreadyExistsException ex)
             {
                 return Conflict(new {message = ex.Message});
+            }
+            catch (LoginInvalidPasswordException ex)
+            {
+                return BadRequest(new {message = ex.Message});
+            }
+            catch (InvalidUserDataException ex)
+            {
+                return BadRequest(new {message = ex.Message});
             }
             catch (PasswordRequiredException ex)
             {
@@ -113,16 +132,16 @@ namespace CaffShop.Controllers
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     new Claim(ClaimTypes.Name, user.UserName)
                 }),
-                
-                // Set 2 hours as JWT lifetime
-                Expires = DateTime.UtcNow.AddHours(2),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(_jwtSecret),
+
+                // Set JWT lifetime
+                Expires = DateTime.UtcNow.AddMinutes(_jwtOptions.LifeTimeMinutes),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(_jwtOptions.SecretBytes),
                     SecurityAlgorithms.HmacSha256Signature),
-                Audience = TokenAudience,
-                Issuer = TokenIssuer,
-                IssuedAt = DateTime.Now,
+                Issuer = _jwtOptions.Issuer,
+                IssuedAt = DateTime.Now
             };
         }
+
 
     }
 }

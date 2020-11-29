@@ -1,11 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace CaffShop.Models.Options
 {
+    [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+    [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public class UploadOptions
     {
-        public static readonly string OptionsName = "Upload";
+        public const string OptionsName = "Upload";
 
         public const long UploadSizeLimit = 20971520; // 20 Mib
         public const string PreviewExtension = ".jpg";

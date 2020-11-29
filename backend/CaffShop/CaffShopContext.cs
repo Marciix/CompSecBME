@@ -1,8 +1,10 @@
-﻿using CaffShop.Entities;
+﻿using System.Diagnostics.CodeAnalysis;
+using CaffShop.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace CaffShop
 {
+    [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
     public class CaffShopContext : DbContext
     {
         

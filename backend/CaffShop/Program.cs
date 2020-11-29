@@ -4,12 +4,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
-using Serilog.Sinks.MariaDB;
 using Serilog.Sinks.MariaDB.Extensions;
 
 namespace CaffShop
 {
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {

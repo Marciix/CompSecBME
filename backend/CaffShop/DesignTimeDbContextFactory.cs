@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace CaffShop
 {
+    // ReSharper disable once UnusedType.Global
     public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<CaffShopContext>
     {
         public CaffShopContext CreateDbContext(string[] args)

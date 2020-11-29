@@ -1,8 +1,12 @@
-﻿namespace CaffShop.Models.Options
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace CaffShop.Models.Options
 {
+    [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+    [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
     public class MySqlServerOptions
     {
-        public static readonly string OptionsName = "MySqlServerOptions";
+        public const string OptionsName = "MySqlServerOptions";
         public string Host { get; set; }
         public string Port { get; set; }
         public string Name { get; set; }

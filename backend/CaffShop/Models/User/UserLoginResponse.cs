@@ -1,4 +1,4 @@
-﻿namespace CaffShop.Models
+﻿namespace CaffShop.Models.User
 {
     public class UserLoginResponse
     {

@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using AutoMapper;
-using CaffShop.Controllers;
 using CaffShop.Helpers;
 using CaffShop.Helpers.Wrappers;
 using CaffShop.Interfaces;
@@ -19,7 +17,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -67,6 +64,10 @@ namespace CaffShop
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddScoped<ICaffUploadService, CaffUploadService>();
 
+            services.Configure<JwtOptions>(Configuration.GetSection(JwtOptions.OptionsName));
+
+            services.AddJwtMiddleware(_validateUserAfterTokenCheck);
+
             switch (Environment.GetEnvironmentVariable("CAFF_PARSER"))
             {
                 case "MOCK":
@@ -79,9 +80,19 @@ namespace CaffShop
                     services.AddScoped<ICaffParserWrapper, CaffParserWrapper>();
                     break;
             }
-            
-            RegisterJwt(services);
         }
+
+        private readonly Func<TokenValidatedContext, Task> _validateUserAfterTokenCheck = context =>
+        {
+            var s = context.HttpContext.RequestServices.GetRequiredService<IAuthenticationService>();
+            if (!s.IsUserAbleToLogin(context.Principal.Identity.Name).Result)
+            {
+                context.Fail("Unauthorized: User does not exists");
+            }
+
+            return Task.CompletedTask;
+        };
+
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(
@@ -93,8 +104,6 @@ namespace CaffShop
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
-
                 // Enable middleware to serve generated Swagger as a JSON endpoint.
                 app.UseSwagger();
                 // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.),
@@ -127,6 +136,7 @@ namespace CaffShop
             InitUploadDirectories(upOptions.Value);
         }
 
+
         private static void RegisterSwaggerGeneration(SwaggerGenOptions options)
         {
             options.SwaggerDoc("v1", new OpenApiInfo {Title = "CaffShop API", Version = "v1"});
@@ -157,45 +167,6 @@ namespace CaffShop
                     new List<string>()
                 }
             });
-        }
-
-        private static void RegisterJwt(IServiceCollection services)
-        {
-            var key = Encoding.ASCII.GetBytes(HelperFunctions.GetEnvironmentValueOrException("JWT_SECRET"));
-            services.AddAuthentication(options =>
-                {
-                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                })
-                .AddJwtBearer(jwtBearerOptions =>
-                {
-                    jwtBearerOptions.RequireHttpsMetadata = false;
-                    jwtBearerOptions.SaveToken = true;
-                    jwtBearerOptions.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuerSigningKey = true,
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(key),
-                        ValidIssuer = AuthController.TokenIssuer,
-                        ValidAudience = AuthController.TokenAudience
-                    };
-                    jwtBearerOptions.Events = new JwtBearerEvents
-                    {
-                        // Validate if user is able to login (in our case: exists in db)
-                        OnTokenValidated = context =>
-                        {
-                            var s = context.HttpContext.RequestServices.GetRequiredService<IAuthenticationService>();
-                            if (s.IsUserAbleToLogin(context.Principal.Identity.Name).Result == false)
-                            {
-                                context.Fail("Unauthorized");
-                            }
-                            return Task.CompletedTask;
-                        }
-                    };
-
-                });
         }
 
         private static void MigrateDatabase(IApplicationBuilder app)

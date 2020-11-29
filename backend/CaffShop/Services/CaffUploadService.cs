@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using CaffShop.Entities;
 using CaffShop.Helpers;
@@ -17,7 +18,7 @@ using Newtonsoft.Json;
 
 namespace CaffShop.Services
 {
-    public class CaffUploadService: ICaffUploadService
+    public class CaffUploadService : ICaffUploadService
     {
         private readonly ICaffParserWrapper _caffParserWrapper;
         private readonly ICaffItemService _caffItemService;
@@ -51,10 +52,14 @@ namespace CaffShop.Services
         }
 
 
-        public async Task<CaffItem> UploadCaffFile(IFormFile file, string originalName, long userId)
+        public async Task<CaffItem> UploadCaffFile(IFormFile file, long userId)
         {
             try
             {
+                var originalName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
+                if (Path.GetExtension(originalName).ToLower() != ".caff")
+                    throw new NotCaffFileException();
+
                 await CopyFormFileToTemp(file);
                 ParseCaffFile();
                 ConvertPpmToJpg();
@@ -118,7 +123,7 @@ namespace CaffShop.Services
 
         private void ConvertPpmToJpg()
         {
-            if (false == File.Exists(_prevFilePath))
+            if (!File.Exists(_prevFilePath))
                 throw new FileNotFoundException();
 
             using var img = new MagickImage(_prevFilePath);
@@ -129,7 +134,6 @@ namespace CaffShop.Services
 
         private CaffItem CreateCaffItem(string originalName, long userId, CaffItemUploadMeta meta)
         {
-
             return new CaffItem
             {
                 Title = meta.Title,

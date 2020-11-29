@@ -6,6 +6,6 @@ namespace CaffShop.Interfaces
 {
     public interface ICaffUploadService
     {
-        public Task<CaffItem> UploadCaffFile(IFormFile file, string originalName, long userId);
+        public Task<CaffItem> UploadCaffFile(IFormFile file, long userId);
     }
 }
