@@ -1,5 +1,5 @@
 CC = g++
-AFL_CC = afl-g++
+AFL_CC = /home/martonbak/Tools/afl-2.52b/afl-g++
 CFLAGS = -shared -fPIC
 WINFLAG = -DBUILD_DLL
 SOURCE = CaffParser.h CaffParser.cpp
