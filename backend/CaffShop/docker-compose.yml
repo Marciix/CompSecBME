@@ -30,10 +30,11 @@ services:
       JwtOptions__Secret: changethissecrettoo
       JwtOptions__Issuer: TymrBackend
       JwtOptions__LifeTimeMinutes: "120"
-      Upload__UploadBaseDir: "/uploads",
-      Upload__TempDirPath: "/tmp",
-      #Upload__PrevDirPath: "",
-      #Upload__CaffDirPath: "",
+      Upload__UploadBaseDir: "/uploads"
+      Upload__TempDirPath: "/tmp"
+      #Upload__PrevDirPath: ""
+      #Upload__CaffDirPath: ""
+      #CAFF_PARSER: MOCK
     ports:
       - "8080:80"
 
