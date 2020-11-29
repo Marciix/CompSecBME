@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".activity.CommentsActivity" android:id="@+id/coordinatorLayout">
+
+    <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="visible" android:background="@color/colorPrimary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+         app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintHorizontal_bias="1.0">
+<LinearLayout android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+android:gravity="right">
+        <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" app:srcCompat="@android:drawable/ic_menu_edit"
+                android:id="@+id/iv_comment"
+                android:layout_marginRight="20dp"
+        />
+
+        <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" app:srcCompat="@android:drawable/ic_menu_info_details"
+                android:layout_marginRight="20dp"
+                android:id="@+id/iv_details"
+        />
+    <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp" app:srcCompat="@drawable/buy_icon"
+            android:layout_marginRight="20dp"
+            android:id="@+id/iv_buy"
+    />
+    <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" app:srcCompat="@android:drawable/ic_menu_save"
+            android:layout_marginRight="20dp"
+            android:id="@+id/iv_save"
+    />
+    <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" app:srcCompat="@android:drawable/ic_menu_delete"
+            android:layout_marginRight="20dp"
+            android:id="@+id/iv_delete"
+    />
+</LinearLayout>
+    </android.support.v7.widget.Toolbar>
+
+
+    <include
+            android:id="@+id/include"
+            layout="@layout/content_comments"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" app:layout_constraintTop_toBottomOf="@+id/toolbar"
+            app:layout_constraintStart_toStartOf="parent"
+          />
+
+
+</android.support.constraint.ConstraintLayout>

@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">CAFFWebshop</string>
+    <string name="action_settings">Settings</string>
+    <string name="no_account_yet_create_one">No account yet? Create one</string>
+    <string name="login">Login</string>
+    <string name="password">Password</string>
+    <string name="user_name">Username</string>
+    <string name="create_account">Create Account</string>
+    <string name="already_a_member_login">Already a member? Login</string>
+    <string name="title_activity_webshop">WebshopActivity</string>
+    <string name="title_activity_comments">CommentsActivity</string>
+    <string name="email">Email</string>
+    <string name="firstname">First name</string>
+    <string name="lastname">Last name</string>
+    <string name="title_activity_upload">UploadActivity</string>
+    <string name="kommentek">Kommentek</string>
+    <string name="le_r_s">Leírás</string>
+    <string name="j_komment">Új komment</string>
+    <string name="description">Description</string>
+    <string name="date_of_upload">Date of Upload</string>
+    <string name="owner">Owner</string>
+    <string name="Webshop">Webshop</string>
+    <string name="comm">Comments:</string>
+    <string name="tags">Tags</string>
+    <string name="choose_file">Choose file</string>
+    <string name="upload_file">Upload file</string>
+</resources>

@@ -1,0 +1,43 @@
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                                             xmlns:app="http://schemas.android.com/apk/res-auto"
+                                             xmlns:tools="http://schemas.android.com/tools"
+                                             android:id="@+id/fragment_item_edit_content"
+                                             android:layout_width="match_parent"
+                                             android:layout_height="match_parent"
+                                             android:layout_margin="40dp"
+>
+
+
+    <TextView
+            android:id="@+id/tv_file_path"
+            android:text="Select file to upload!"
+            android:textAlignment="center"
+            android:layout_height="wrap_content" android:layout_width="0dp"
+            app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="8dp" android:layout_marginRight="8dp"
+            app:layout_constraintStart_toStartOf="parent" android:layout_marginLeft="8dp"
+            android:layout_marginStart="8dp" app:layout_constraintStart_toEndOf="@+id/btn_upload_file"
+            app:layout_constraintHorizontal_bias="0.5" android:layout_marginTop="8dp"
+            app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toTopOf="@+id/btn_choose_file"
+            app:layout_constraintVertical_chainStyle="packed" android:textStyle="bold"/>
+
+    <Button
+            android:id="@+id/btn_choose_file"
+            android:text="@string/choose_file"
+            android:layout_height="wrap_content" android:layout_width="wrap_content"
+            app:layout_constraintStart_toStartOf="parent" android:layout_marginLeft="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp" app:layout_constraintTop_toBottomOf="@+id/tv_file_path"
+            app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="8dp" android:layout_marginRight="8dp"
+            app:layout_constraintHorizontal_bias="0.5" app:layout_constraintBottom_toTopOf="@+id/btn_upload_file"/>
+
+    <Button
+            android:id="@+id/btn_upload_file"
+            android:text="@string/upload_file"
+            android:layout_height="wrap_content" android:layout_width="wrap_content"
+            android:layout_marginBottom="8dp" app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginTop="8dp" app:layout_constraintTop_toBottomOf="@+id/btn_choose_file"
+            app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="8dp" android:layout_marginRight="8dp"
+            app:layout_constraintStart_toStartOf="parent" android:layout_marginLeft="8dp"
+            android:layout_marginStart="8dp" app:layout_constraintHorizontal_bias="0.5" android:enabled="false"/>
+
+</android.support.constraint.ConstraintLayout>
