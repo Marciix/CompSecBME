@@ -150,6 +150,12 @@ int ParseAndValidateCaff(const char* _caffDir, const char* _previewDir, const ch
 				myfile.read(reinterpret_cast<char*>(&creator_len), sizeof(uint64_t));
 				std::cout << "Creator len: " << creator_len << std::endl;
 
+				//checking if size is equal to length
+				if(length != (14 + creator_len)){ // 14 is the date (6 bytes) + 8 byte integer
+					std::cout << "Return 1, wrong creator len" << std::endl;
+					return 1;
+				}
+
 				std::string creator;
 				for (int i = 0; i < creator_len; i++) {
 					myfile.read(reinterpret_cast<char*>(&char_buffer), sizeof(char));
@@ -157,12 +163,6 @@ int ParseAndValidateCaff(const char* _caffDir, const char* _previewDir, const ch
 				}
 				
 				std::cout << "Creator: " << creator << std::endl;
-
-				//checking if size is equal to length
-				if(length != (14 + creator_len)){ // 14 is the date (6 bytes) + 8 byte integer
-					std::cout << "Return 1, wrong creator len" << std::endl;
-					return 1;
-				}
 			}
 #pragma endregion
 
