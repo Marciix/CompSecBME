@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CaffShop.Entities;
 using CaffShop.Interfaces;
+using CaffShop.Models.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace CaffShop.Services
@@ -11,14 +12,22 @@ namespace CaffShop.Services
     public class PurchaseService : IPurchaseService
     {
         private readonly CaffShopContext _context;
-
-        public PurchaseService(CaffShopContext context)
+        private readonly ICaffItemService _caffItemService;
+        
+        public PurchaseService(CaffShopContext context, ICaffItemService caffItemService)
         {
             _context = context;
+            _caffItemService = caffItemService;
         }
 
         public async Task<Purchase> PurchaseItem(long itemId, long userId)
         {
+            if (!await _caffItemService.IsCaffExists(itemId))
+                throw new CaffItemNotFoundException();
+
+            if (await IsUserPurchasedItem(itemId, userId))
+                throw new UserAlreadyPurchasedItemException();
+
             var purchase = new Purchase
             {
                 CaffItemId = itemId,
@@ -47,7 +56,7 @@ namespace CaffShop.Services
                 .Where(p => p.CaffItemId == itemId && p.UserId == userId)
                 .Take(1)
                 .CountAsync();
-            
+
             return nr != 0;
         }
     }

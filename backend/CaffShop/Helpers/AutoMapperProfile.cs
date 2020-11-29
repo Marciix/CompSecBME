@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using CaffShop.Entities;
-using CaffShop.Models;
 using CaffShop.Models.CaffItem;
+using CaffShop.Models.Comment;
+using CaffShop.Models.User;
 
 namespace CaffShop.Helpers
 {
+    // ReSharper disable once UnusedType.Global
     public class AutoMapperProfile : Profile
     {
         public AutoMapperProfile()

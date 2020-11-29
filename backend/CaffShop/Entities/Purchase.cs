@@ -1,27 +1,24 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CaffShop.Entities
 {
-    [Table("purchases")]
+    [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
     public class Purchase
     {
         [Key]
-        [Column("id")]
         public long Id { get; set; }
-
-        [Column("purchased_at")]
+        
         [Required]
         public DateTime PurchasedAt { get; set; }
         
-        [Column("user_id")]
-        [ForeignKey("User")]
+        [ForeignKey(nameof(User))]
         [Required]
         public long UserId { get; set; }
         
-        [Column("caff_item_id")]
-        [ForeignKey("CaffItem")]
+        [ForeignKey(nameof(CaffItem))]
         [Required]
         public long CaffItemId { get; set; }
     }

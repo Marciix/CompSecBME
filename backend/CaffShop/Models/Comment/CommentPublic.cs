@@ -1,6 +1,7 @@
 ﻿using System;
+using CaffShop.Models.User;
 
-namespace CaffShop.Models
+namespace CaffShop.Models.Comment
 {
     public class CommentPublic
     {

@@ -2,23 +2,27 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
+using Newtonsoft.Json;
 
 namespace CaffShop.Entities
 {
-    [Table("caff_items")]
+    [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
+    [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     public class CaffItem
     {
         [Key]
-        [Column("id")]
         public long Id { get; set; }
 
         [Required]
-        public string Name { get; set; }
+        public string Title { get; set; }
         
-        public string Description { get; set; }
-
+        [JsonIgnore]
+        public string TagsText { get; set; }
+        
         [Required]
-        [ForeignKey("Owner")]
+        [ForeignKey(nameof(Owner))]
         public long OwnerId { get; set; }
         
         [Required]
@@ -36,10 +40,15 @@ namespace CaffShop.Entities
         // Technical field
         public string InnerName { get; set; }
         
-
-        // Technical field
-        public long CaffFileSize { get; set; }
-
+        
         public User Owner { get; set; }
+        
+        [NotMapped]
+        public List<string> Tags
+        {
+            get => JsonConvert.DeserializeObject<List<string>>(TagsText);
+            set => TagsText = JsonConvert.SerializeObject(value);
+        }
+        
     }
 }

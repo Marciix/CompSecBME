@@ -1,10 +1,14 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using AutoMapper;
 using CaffShop.Helpers;
 using CaffShop.Interfaces;
+using CaffShop.Models.Exceptions;
 using CaffShop.Models.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace CaffShop.Controllers
 {
@@ -13,54 +17,79 @@ namespace CaffShop.Controllers
     public class UsersController : Controller
     {
         private readonly IUserService _userService;
+        private readonly IMapper _mapper;
+        private readonly ILogger<UsersController> _logger;
 
-        public UsersController(IUserService userService)
+        public UsersController(IUserService userService, IMapper mapper, ILogger<UsersController> logger)
         {
             _userService = userService;
+            _mapper = mapper;
+            _logger = logger;
+        }
+
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<ActionResult<IEnumerable<UserPublic>>> ListUsers()
+        {
+            var authUserId = UserHelper.GetAuthenticatedUserId(User);
+            // Only admin can access user list
+            if (!await _userService.IsUserAdmin(authUserId))
+            {
+                _logger.LogWarning($"User #{authUserId} tried to fetch user list");
+                return StatusCode(StatusCodes.Status403Forbidden, "You are not allowed to view users");
+            }
+
+            var users = await _userService.GetAllUsers();
+
+            return Ok(_mapper.Map<UserPublic[]>(users));
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult> DeleteUser(long id)
         {
-            if (CheckIfUserAllowedToModifyUser(id))
-                return StatusCode(StatusCodes.Status403Forbidden, "You are not allowed to delete this user!");
+            var authUserId = UserHelper.GetAuthenticatedUserId(User);
 
-            var user = await _userService.GetUserById(id);
-
-            if (null == user)
+            try
+            {
+                await _userService.DeleteUser(id, authUserId);
+                _logger.LogInformation($"User #{authUserId} deleted user #{id}");
+                return Ok();
+            }
+            catch (UserNotExistsException)
+            {
                 return NotFound("User not found");
-
-            await _userService.DeleteUser(user);
-            return Ok();
+            }
+            catch (UserNotAllowedToDeleteUserException)
+            {
+                _logger.LogWarning($"User #{authUserId} tried to delete user #{id}");
+                return StatusCode(StatusCodes.Status403Forbidden, "You are not allowed to delete this user!");
+            }
         }
 
         [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult> ModifyUserData(long id, [FromBody] UserModifyModel model)
         {
-            if (CheckIfUserAllowedToModifyUser(id))
-                return StatusCode(StatusCodes.Status403Forbidden, "You are not allowed to delete this user!");
+            var authUserId = UserHelper.GetAuthenticatedUserId(User);
 
-            var user = await _userService.GetUserById(id);
-
-            if (null == user)
-                return NotFound("User not found");
-
-            if (model.FirstName.Length != 0)
-                user.FirstName = model.FirstName;
-
-            if (model.LastName.Length != 0)
-                user.LastName = model.LastName;
-
-            await _userService.UpdateUser(user);
-
-            return Ok();
-        }
-
-        private bool CheckIfUserAllowedToModifyUser(long userIdToModify)
-        {
-            var userId = UserHelper.GetAuthenticatedUserId(User);
-            var isAdmin = UserHelper.IsAuthenticatedUserAdmin(User);
-            return isAdmin || userIdToModify == userId;
+            try
+            {
+                await _userService.UpdateUser(id, model.FirstName, model.LastName, authUserId);
+                _logger.LogInformation($"User #{authUserId} modified user #{id}");
+                return Ok();
+            }
+            catch (UserNotAllowedToModifyUserException)
+            {
+                _logger.LogWarning($"User #{authUserId} tried to edit user #{id}");
+                return StatusCode(StatusCodes.Status403Forbidden, "You are not allowed to edit this user!");
+            }
+            catch (UserNotExistsException)
+            {
+                return NotFound("User not found.");
+            }
         }
     }
 }

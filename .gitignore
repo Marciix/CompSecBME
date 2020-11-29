@@ -376,6 +376,6 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 
-backend/Uploads
+backend/CaffShop/Uploads
 
 .idea/

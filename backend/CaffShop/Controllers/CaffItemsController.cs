@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using AutoMapper;
 using CaffShop.Helpers;
@@ -10,12 +9,10 @@ using CaffShop.Models.CaffItem;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.StaticFiles;
-using System.Net.Http.Headers;
-using CaffShop.Entities;
+using CaffShop.Models.Comment;
 using CaffShop.Models.Exceptions;
-using CaffShop.Models.Settings;
-using ImageMagick;
+using CaffShop.Models.Options;
+using Microsoft.Extensions.Logging;
 
 namespace CaffShop.Controllers
 {
@@ -23,23 +20,31 @@ namespace CaffShop.Controllers
     [Route("[controller]")]
     public class CaffItemsController : Controller
     {
-
         private readonly IMapper _mapper;
+        private readonly IUserService _userService;
         private readonly ICaffItemService _caffItemService;
         private readonly ICommentService _commentService;
         private readonly IPurchaseService _purchaseService;
-        private readonly ICaffParserWrapper _caffParserWrapper;
-        private readonly UploadSettings _us;
+        private readonly ICaffUploadService _caffUploadService;
+        private readonly ILogger<CaffItemsController> _logger;
 
-        public CaffItemsController(IMapper mapper, ICaffItemService caffItemService, ICommentService commentService,
-            IPurchaseService purchaseService, ICaffParserWrapper caffParserWrapper, UploadSettings us)
+        public CaffItemsController(
+            IMapper mapper,
+            IUserService userService,
+            ICaffItemService caffItemService,
+            ICommentService commentService,
+            IPurchaseService purchaseService,
+            ICaffUploadService caffUploadService,
+            ILogger<CaffItemsController> logger
+        )
         {
             _mapper = mapper;
+            _userService = userService;
             _caffItemService = caffItemService;
             _commentService = commentService;
             _purchaseService = purchaseService;
-            _caffParserWrapper = caffParserWrapper;
-            _us = us;
+            _caffUploadService = caffUploadService;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -50,147 +55,132 @@ namespace CaffShop.Controllers
             return Ok(mappedItems);
         }
 
-        [HttpPost("upload"), RequestSizeLimit(UploadSettings.UploadSizeLimit)]
-        public async Task<ActionResult<IdResult>> UploadCaffFile([FromForm] CaffItemCreation itemMeta)
+        [HttpPost("upload"), RequestSizeLimit(UploadOptions.UploadSizeLimit)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<IdResult>> UploadCaffFile()
         {
-            if (Request.Form.Files.Count != 1)
-                return BadRequest("Submitted form data must contain exactly one file");
-            var file = Request.Form.Files[0];
-
-            var originalName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
-            
-            if (Path.GetExtension(originalName).ToLower() != ".caff")
-                return BadRequest("The file must be a caff file");
-
-            var rndName = RandomFileNameWithTimestamp();
-
-            var tempFilePath = Path.Combine(_us.TempDirPath, rndName + ".caff");
-            var caffFilePath = Path.Combine(_us.CaffDirPath, rndName + ".caff");
-            var prevFilePath = Path.Combine(_us.PrevDirPath, rndName + ".ppm");
-
-            await using var stream = new FileStream(tempFilePath, FileMode.Create);
-            await file.CopyToAsync(stream);
+            var userId = UserHelper.GetAuthenticatedUserId(User);
 
             try
             {
-                _caffParserWrapper.ValidateAndParseCaff(tempFilePath, prevFilePath);
-                System.IO.File.Move(tempFilePath, caffFilePath);
+                if (Request.Form.Files.Count != 1)
+                    return BadRequest("Submitted form data must contain exactly one file");
             }
-            catch (InvalidCaffFileException ex)
+            catch (InvalidOperationException)
             {
-                System.IO.File.Delete(tempFilePath);
+                return BadRequest("Request does not contain form data.");
+            }
+
+            try
+            {
+                var file = Request.Form.Files[0];
+
+                var caffItem = await _caffUploadService.UploadCaffFile(file, userId);
+                _logger.LogInformation($"User #{userId} created item #{caffItem.Id}");
+                return Ok(new IdResult {Id = caffItem.Id});
+            }
+            catch (NotCaffFileException)
+            {
+                _logger.LogWarning($"User #{userId} tried to upload a non CAFF file.");
+                return BadRequest("The file must be a caff file");
+            }
+            catch (CaffUploadException ex)
+            {
+                _logger.LogWarning($"User #{userId} tried to upload an invalid CAFF file.", ex);
                 return BadRequest(ex.Message);
             }
-            
-            var finalPrevFilePath = Path.Combine(_us.PrevDirPath, rndName + UploadSettings.PreviewExtension);
-            ConvertPpmToJpg(prevFilePath, finalPrevFilePath);
-
-            var item = new CaffItem
+            catch (Exception ex)
             {
-                Name = itemMeta.Name,
-                Description = itemMeta.Description,
-                OwnerId = UserHelper.GetAuthenticatedUserId(User),
-                UploadedAt = DateTime.Now,
-                CaffPath = caffFilePath,
-                PreviewPath = finalPrevFilePath,
-                InnerName = rndName,
-                OriginalName = originalName
-            };
-
-            try
-            {
-                item = await _caffItemService.SaveCaff(item);
-                return Ok(new IdResult{ Id = item.Id});
-            }
-            catch
-            {
-                // TODO Log error
+                _logger.LogError("An error occured during CAFF upload", ex);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 
-        private static void ConvertPpmToJpg(string ppmPath, string targetPath)
-        {
-            if (false == System.IO.File.Exists(ppmPath))
-                throw new FileNotFoundException();
-
-            using var img = new MagickImage(ppmPath);
-            img.Write(targetPath);
-            System.IO.File.Delete(ppmPath);
-        }
-
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<CaffItemPublic>> GetCaffItem(long id, bool withOwner = false)
         {
-            var item = await _caffItemService.GetCaffItem(id, withOwner);
-
-            if (item == null)
+            try
+            {
+                var item = await _caffItemService.GetCaffItem(id, withOwner);
+                return Ok(_mapper.Map<CaffItemPublic>(item));
+            }
+            catch (CaffItemNotFoundException)
+            {
                 return NotFound("CAFF Item not found");
-
-            return Ok(_mapper.Map<CaffItemPublic>(item));
+            }
         }
 
         [HttpPost("{id}/buy")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<ActionResult> BuyCaffItem(long id)
         {
             var userId = UserHelper.GetAuthenticatedUserId(User);
 
-            if (false == await _caffItemService.IsCaffExists(id))
-                return NotFound("CAFF Item not found");
-
-            if (await _purchaseService.IsUserPurchasedItem(id, userId))
-                return Conflict("User already purchased this item.");
-
             try
             {
                 await _purchaseService.PurchaseItem(id, userId);
+                _logger.LogInformation($"User #{userId} bought item #{id}");
                 return Ok();
             }
-            catch
+            catch (UserAlreadyPurchasedItemException)
             {
-                // TODO Log error
+                return Conflict("User already purchased this item.");
+            }
+            catch (CaffItemNotFoundException)
+            {
+                return NotFound("CAFF Item not found");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("An error occured during buying an item", ex);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 
         [HttpGet("{id}/download")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> DownloadCaffFile(long id)
         {
-            var item = await _caffItemService.GetCaffItem(id);
-
-            if (null == item)
-                return NotFound("CAFF Item not found");
-
-            var userId = UserHelper.GetAuthenticatedUserId(User);
-            if (false == await _purchaseService.IsUserPurchasedItem(id, userId))
-                return StatusCode(StatusCodes.Status403Forbidden, "You should buy this item before download!");
-
             try
             {
-                return DownloadFileStreamResult(item.CaffPath, item.OriginalName);
+                var userId = UserHelper.GetAuthenticatedUserId(User);
+                if (!await _purchaseService.IsUserPurchasedItem(id, userId))
+                    throw new UserNotPurchasedCaffItemException();
+                return await _caffItemService.DownloadCaffFile(id, userId);
             }
-            catch
+            catch (CaffItemNotFoundException)
             {
-                // TODO Log error
+                return NotFound("CAFF Item not found");
+            }
+            catch (UserNotPurchasedCaffItemException)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, "You should buy this item before download!");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occured during downloading item #{id}", ex);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 
         [HttpGet("{id}/preview.jpg")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> PreviewCaffFile(long id)
         {
-            var item = await _caffItemService.GetCaffItem(id);
-
-            if (null == item)
-                return NotFound("CAFF Item not found");
-
             try
             {
-                return GetFileStreamResult(item.PreviewPath);
+                return await _caffItemService.GetPreviewImage(id);
             }
-            catch
+            catch (CaffItemNotFoundException)
             {
-                // TODO Log error
+                return NotFound("CAFF Item not found");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occured during printing preview for item #{id}", ex);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -207,87 +197,71 @@ namespace CaffShop.Controllers
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> DeleteCaffItem(long id)
         {
-            var item = await _caffItemService.GetCaffItem(id);
-
-            if (null == item)
-                return NotFound("CAFF Item not found");
-
             var userId = UserHelper.GetAuthenticatedUserId(User);
-            var isAdmin = UserHelper.IsAuthenticatedUserAdmin(User);
 
-            if (item.OwnerId != userId && false == isAdmin)
+            try
+            {
+                var item = await _caffItemService.GetCaffItem(id);
+                var isAdmin = await _userService.IsUserAdmin(userId);
+                await _caffItemService.DeleteCaffItem(item, userId, isAdmin);
+                _caffItemService.DeleteCaffItemFromDisc(item);
+                _logger.LogInformation($"User #{userId} deleted item #{id}");
+                return Ok();
+            }
+            catch (CaffItemNotFoundException)
+            {
+                return NotFound("CAFF Item not found");
+            }
+            catch (UserNotAllowedToDeleteCaffException)
+            {
+                _logger.LogWarning($"User #{userId} tried to delete item #{id}");
                 return StatusCode(StatusCodes.Status403Forbidden, "You are not authorized to delete this item!");
-
-            await _caffItemService.DeleteCaffItem(item);
-            DeleteCaffItemFromDisc(item);
-            return Ok();
-        }
-
-        private static void DeleteCaffItemFromDisc(CaffItem item)
-        {
-            if (System.IO.File.Exists(item.CaffPath))
-                System.IO.File.Delete(item.CaffPath);
-
-            if (System.IO.File.Exists(item.PreviewPath))
-                System.IO.File.Delete(item.PreviewPath);
+            }
         }
 
         [HttpGet("{id}/comments")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<CommentPublic>>> GetCommentsForCaffItem(long id,
             bool withAuthors = false)
         {
-            if (false == await _caffItemService.IsCaffExists(id))
+            try
+            {
+                var comments = await _commentService.GetCommentForCaffItem(id, withAuthors);
+                return Ok(_mapper.Map<IEnumerable<CommentPublic>>(comments));
+            }
+            catch (CaffItemNotFoundException)
+            {
                 return NotFound("Caff item not found");
-
-            var comments = await _commentService.GetCommentForCaffItem(id, withAuthors);
-            return Ok(_mapper.Map<IEnumerable<CommentPublic>>(comments));
+            }
         }
 
 
         [HttpPost("{id}/comments")]
-        public async Task<ActionResult<IdResult>> CommentOnCaffItem(long id, [FromBody] CommentCreationModel commentModel)
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IdResult>> CommentOnCaffItem(long id,
+            [FromBody] CommentCreationModel commentModel)
         {
-            if (false == await _caffItemService.IsCaffExists(id))
-                return NotFound("Caff item not found");
-
             var userId = UserHelper.GetAuthenticatedUserId(User);
 
             try
             {
                 var comment = await _commentService.SaveComment(commentModel.Content, id, userId);
-                return Ok(new IdResult{ Id = comment.Id});
+                _logger.LogInformation($"User #{userId} commented on item #{id}");
+                return Ok(new IdResult {Id = comment.Id});
             }
-            catch
+            catch (CaffItemNotFoundException)
             {
-                // TODO Log error
+                return NotFound("Caff item not found");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("An error occured during commenting", ex);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
-        }
-
-
-        private static FileStreamResult GetFileStreamResult(string fullPath)
-        {
-            new FileExtensionContentTypeProvider().TryGetContentType(fullPath, out var contentType);
-            var stream = System.IO.File.OpenRead(fullPath);
-            return new FileStreamResult(stream, contentType ?? "application/octet-stream");
-        }
-
-        private static FileStreamResult DownloadFileStreamResult(string fullPath, string fileName)
-        {
-            var fileStream = GetFileStreamResult(fullPath);
-
-            fileStream.FileDownloadName = fileName;
-
-            return fileStream;
-        }
-
-        private static string RandomFileNameWithTimestamp()
-        {
-            var ts = HelperFunctions.GetUnixTimestamp();
-            var rnd = HelperFunctions.GenerateRandomString(10);
-            return $"{ts}_{rnd}";
         }
     }
 }
